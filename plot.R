@@ -24,8 +24,6 @@ df <- data.frame(chr = chr_fac, mut_num = c(unname(x)))
 
 # chrom | n mut
 
-df
-
 ggplot(df, aes(x = chr, y = mut_num)) +
   geom_point(colour = "purple") +
   theme_bw()

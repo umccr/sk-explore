@@ -15,10 +15,11 @@ chr_lengths <- c(249250621L, 243199373L, 198022430L, 191154276L,
                  115169878L, 107349540L, 102531392L,  90354753L,
                  81195210L,  78077248L,   59128983L,  63025520L,
                  48129895L,  51304566L,  155270560L,  59373566L, 16569L)
-chr_names = c(1:22, "X", "Y", "MT")
+chr_names <-  c(1:22, "X", "Y", "MT")
 names(chr_lengths) <- chr_names
 bin_size <- 40000000
 
+#Create a vcf with chromosome number and position coloumns, from the priginal vcf. 
 #Get chromosome and filter vcf for that chromosome
 
 filter_chr <- function(x, vcf) {
@@ -32,7 +33,7 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
   return(seq(from = 0, to = chr_lengths[chr_name], by = bin_size))
 }
 
-#Count mutations in a chromosome
+#Count mutations in a chromosome - cbind combines vector, matrix or data-frame by coloumns 
 
 count_mut_in_chr <- function(chr_pos, bin_vec) {
   x <- cbind(chr_pos$pos, findInterval(chr_pos$pos, bin_vec))
