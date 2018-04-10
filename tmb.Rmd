@@ -1,5 +1,5 @@
 ---
-title: "Tumour Mutational Burden"
+title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
 date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
 output: 
@@ -12,6 +12,7 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE) # global setup
 ```
+The report describes the work done for analysing and understanding TMB on one of the ensemble somatic variant calls (`/data/cephfs/punim0010/data/Results/Patients/CUP_SC932/final/umccrised/cup_tissue/somatic/ensemble-pon-pass.vcf.gz`). Many thanks to Peter for providing specific pointers and useful explanation on how to tackle various issues in R.
 
 Required packages
 
@@ -49,6 +50,21 @@ Declare bin size (in bases)
 bin_size <- 40000000
 ```
 
+
+```{r} 
+chrom <- vcfR::getCHROM(vcf)
+x <- table(chrom)
+x
+# How can I sort not alphanumerically
+# Use gtools::mixedorder to get the ordered indices (or mixedsort to sort them)
+sorted_ind <- gtools::mixedorder(names(x))
+sorted_ind
+x <- x[sorted_ind]
+x
+chr_fac <- factor(names(x), levels = gtools::mixedsort(names(x)))
+chr_fac
+```
+
 Get chromosome and filter vcf for that chromosome
 
 ```{r}
@@ -71,9 +87,13 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 Count mutations in a chromosome
 
 ```{r}
-count_mut_in_chr <- function(chr_pos, bin_vec) {
+count_mut_per_bin <- function(chr_pos, bin_vec) {
   x <- cbind(chr_pos$pos, findInterval(chr_pos$pos, bin_vec))
-  mean(table(x[, 2]))
+  tab <- table(x[, 2])
+  df <- data.frame(bin_num = names(tab),
+                   num_mut_in_bin = c(unname(tab)),
+                   stringsAsFactors = FALSE)
+  df
 }
 ```
 
@@ -82,26 +102,34 @@ Apply same function to all chromosomes. This gives a numerical vector containing
 ```{r}
 results <- vector("numeric", length = length(chr_names))
 for (i in 1:length(chr_names)) {
-  results[i] <- count_mut_in_chr(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))
+  results[i] <- mean(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
 }
 print(results)
 ```
 
-Plotting the total number of variants across all chromosomes
+
+* Calculate number of mutations per bin for chromosomes 1, 2, 11:
 
 ```{r}
-chrom <- vcfR::getCHROM(vcf)
-x <- table(chrom)
-x
+results2 <- vector("list", length = length(chr_names))
+for (i in 1:length(chr_names)) {
+  results2[[i]] <- count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))
+}
+```
 
-# How can I sort not alphanumerically
-# Use gtools::mixedorder to get the ordered indices (or mixedsort to sort them)
-sorted_ind <- gtools::mixedorder(names(x))
-sorted_ind
-x <- x[sorted_ind]
-x
-chr_fac <- factor(names(x), levels = gtools::mixedsort(names(x)))
-chr_fac
+* Turn a list that contains X data.frames to a single data.frame
+
+```{r}
+names(results2) <- paste("chr", chr_names, sep = "")
+str(results2)
+binding1 <- do.call("rbind", results2) # this sucks
+binding2 <- dplyr::bind_rows(results2, .id = "chromosome")# implement the dplyr::bind_rows way. Research what the '.id' arg does.
+```
+
+
+Plotting the total number of variants across all chromosomes
+
+```{r total_variants_per_chrom}
 df <- data.frame(chr = chr_fac, mut_num = c(unname(x)))
 df
 ggplot(df, aes(x = chr, y = mut_num)) +
@@ -111,7 +139,7 @@ ggplot(df, aes(x = chr, y = mut_num)) +
 
 Plotting the mean of variants across all bins in a chromosome i.e. results 
 
-```{r}
+```{r mean_of_varinats_per_bin_per_chrom}
 df <- data.frame(chr = chr_fac, mut_num <- results)
 ggplot(df, aes(x = chr, y = mut_num)) +
   geom_point(colour = "red") +
@@ -119,22 +147,21 @@ ggplot(df, aes(x = chr, y = mut_num)) +
 
 ```
 
+Plotting and comparing mutations across bins in all chromosomes
 
+```{r mut_per_bin_per_chrom}
+df <- binding2
+head(df)
 
+bp <- ggplot(df, aes(x = bin_num, y = num_mut_in_bin)) +
+  geom_bar(stat = "identity", fill="blue", colour = "pink") +
+  facet_wrap(~chromosome) +
+  theme_bw(base_size = 10)
+bp + guides(fill=FALSE)
+```
 
+**TO DO:** 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+Extract chromosome from the binding2 and use the top function with mixedorder and mixedsort to arrange chromosomes (1-22,X, Y) in the last plot (analyse it).
 
 
