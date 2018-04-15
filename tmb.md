@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Fri 2018-Apr-13"
+date: "Sun 2018-Apr-15"
 output: 
   html_document: 
     keep_md: yes
@@ -299,6 +299,7 @@ Plotting and comparing mutations across bins in all chromosomes
 
 ```r
 df <- binding2 
+df_new <- dplyr::mutate(df, chr_factor = factor(chromosome, levels = gtools::mixedsort(unique(chromosome))))
 head(df)
 ##   chromosome bin_num num_mut_in_bin
 ## 1       chr1       1            150
@@ -307,9 +308,9 @@ head(df)
 ## 4       chr1       4             53
 ## 5       chr1       5            267
 ## 6       chr1       6            166
-bp <- ggplot(df, aes(x = bin_num, y = num_mut_in_bin)) +
+bp <- ggplot(df_new, aes(x = bin_num, y = num_mut_in_bin)) +
   geom_bar(stat = "identity", fill="blue", colour = "pink") +
-  facet_wrap(~chromosome) +
+  facet_wrap(~chr_factor) +
   theme_bw(base_size = 10)
 bp + guides(fill=FALSE)
 ```
