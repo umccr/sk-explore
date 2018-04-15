@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Tue 2018-Apr-10"
+date: "Fri 2018-Apr-13"
 output: 
   html_document: 
     keep_md: yes
@@ -241,9 +241,8 @@ str(results2)
 ##   ..$ bin_num       : chr "1"
 ##   ..$ num_mut_in_bin: int 2
 binding1 <- do.call("rbind", results2) # this sucks
-binding2 <- dplyr::bind_rows(results2, .id = "chromosome")# implement the dplyr::bind_rows way. Research what the '.id' arg does.
+binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
 ```
-
 
 Plotting the total number of variants across all chromosomes
 
@@ -299,7 +298,7 @@ Plotting and comparing mutations across bins in all chromosomes
 
 
 ```r
-df <- binding2
+df <- binding2 
 head(df)
 ##   chromosome bin_num num_mut_in_bin
 ## 1       chr1       1            150
@@ -308,7 +307,6 @@ head(df)
 ## 4       chr1       4             53
 ## 5       chr1       5            267
 ## 6       chr1       6            166
-
 bp <- ggplot(df, aes(x = bin_num, y = num_mut_in_bin)) +
   geom_bar(stat = "identity", fill="blue", colour = "pink") +
   facet_wrap(~chromosome) +
@@ -318,7 +316,7 @@ bp + guides(fill=FALSE)
 
 ![](tmb_files/figure-html/mut_per_bin_per_chrom-1.png)<!-- -->
 
-**TO DO:** 
+**TO DO:**
 
 Extract chromosome from the binding2 and use the top function with mixedorder and mixedsort to arrange chromosomes (1-22,X, Y) in the last plot (analyse it).
 
