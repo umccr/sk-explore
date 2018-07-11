@@ -25,7 +25,7 @@ library(ggplot2)
 Input file
 
 ```{r}
-vcf <-  read.vcfR("../Data/ensemble-pon-pass.vcf") # 20,361 variants in total
+vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") # 20,361 variants in total
 #head(vcf)
 ```
 
@@ -159,8 +159,13 @@ bp <- ggplot(df_new, aes(x = bin_num, y = num_mut_in_bin)) +
 bp + guides(fill=FALSE)
 ```
 
-**TO DO:**
+Calculating mutations per megabase
 
-Extract chromosome from the binding2 and use the top function with mixedorder and mixedsort to arrange chromosomes (1-22,X, Y) in the last plot (analyse it).
+```{r}
+fix <- getFIX(vcf)
+vcf_number_rows <- nrow(fix)
+mutations_megabase <- ceiling(vcf_number_rows/3200) 
+```
 
+The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and _number of mutations per megabase_ are **`r mutations_megabase`**.
 

@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Sun 2018-Apr-15"
+date: "Wed 2018-Jul-11"
 output: 
   html_document: 
     keep_md: yes
@@ -18,6 +18,7 @@ Required packages
 ```r
 library(vcfR)
 library(dplyr)
+## Warning: package 'dplyr' was built under R version 3.5.1
 library(ggplot2)
 ```
 
@@ -25,11 +26,11 @@ Input file
 
 
 ```r
-vcf <-  read.vcfR("../Data/ensemble-pon-pass.vcf") # 20,361 variants in total
+vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") # 20,361 variants in total
 ## Scanning file to determine attributes.
 ## File attributes:
 ##   meta lines: 343
-##   header line: 344
+##   header_line: 344
 ##   variant count: 20361
 ##   column count: 11
 ## Meta line 343 read in.
@@ -317,8 +318,14 @@ bp + guides(fill=FALSE)
 
 ![](tmb_files/figure-html/mut_per_bin_per_chrom-1.png)<!-- -->
 
-**TO DO:**
+Calculating mutations per megabase
 
-Extract chromosome from the binding2 and use the top function with mixedorder and mixedsort to arrange chromosomes (1-22,X, Y) in the last plot (analyse it).
 
+```r
+fix <- getFIX(vcf)
+vcf_number_rows <- nrow(fix)
+mutations_megabase <- ceiling(vcf_number_rows/3200) 
+```
+
+The _total number of mutations_ in the vcf are **20361** and _number of mutations per megabase_ are **7**.
 
