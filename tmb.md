@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Mon 2018-Jul-16"
+date: "Tue 2018-Jul-24"
 output: 
   html_document: 
     keep_md: yes
@@ -335,13 +335,58 @@ Calculating mutations in the coding regions/exons
 
 ```r
 ann <- vcfR::extract.info(vcf, "ANN")
-head(ann)
-## [1] "TTA|intron_variant|MODIFIER|GNB1|ENSG00000078369|transcript|ENST00000378609|protein_coding|1/11|c.-96+20980_-96+20981dupTA||||||,TTA|intron_variant|MODIFIER|GNB1|ENSG00000078369|transcript|ENST00000439272|protein_coding|1/7|c.-96+20980_-96+20981dupTA||||||WARNING_TRANSCRIPT_INCOMPLETE,TTA|intron_variant|MODIFIER|GNB1|ENSG00000078369|transcript|ENST00000434686|protein_coding|1/8|c.-150+20524_-150+20525dupTA||||||WARNING_TRANSCRIPT_INCOMPLETE,TTA|intron_variant|MODIFIER|GNB1|ENSG00000078369|transcript|ENST00000472614|processed_transcript|1/2|n.147+20980_147+20981dupTA||||||"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-## [2] "T|intergenic_region|MODIFIER|RP1-140A9.1-CALML6|ENSG00000231050-ENSG00000169885|intergenic_region|ENSG00000231050-ENSG00000169885|||n.1832632G>T||||||"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-## [3] "A|intron_variant|MODIFIER|MORN1|ENSG00000116151|transcript|ENST00000378531|protein_coding|12/13|c.1250+1107G>T||||||,A|intron_variant|MODIFIER|MORN1|ENSG00000116151|transcript|ENST00000606372|processed_transcript|11/11|n.1332+1107G>T||||||"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-## [4] "T|upstream_gene_variant|MODIFIER|RP4-740C4.6|ENSG00000269896|transcript|ENST00000602865|processed_transcript||n.-4390G>A|||||4390|,T|downstream_gene_variant|MODIFIER|MORN1|ENSG00000116151|transcript|ENST00000607342|processed_transcript||n.*1428G>A|||||1428|,T|intron_variant|MODIFIER|MORN1|ENSG00000116151|transcript|ENST00000378531|protein_coding|10/13|c.1036+222G>A||||||,T|intron_variant|MODIFIER|MORN1|ENSG00000116151|transcript|ENST00000606372|processed_transcript|9/11|n.1118+222G>A||||||,T|intron_variant|MODIFIER|MORN1|ENSG00000116151|transcript|ENST00000378529|protein_coding|10/10|c.1036+222G>A||||||"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-## [5] "A|upstream_gene_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000609981|protein_coding||c.-7721T>A|||||3186|WARNING_TRANSCRIPT_NO_STOP_CODON,A|intergenic_region|MODIFIER|PEX10-PLCH2|ENSG00000157911-ENSG00000149527|intergenic_region|ENSG00000157911-ENSG00000149527|||n.2354233T>A||||||"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-## [6] "A|upstream_gene_variant|MODIFIER|RP3-395M20.2|ENSG00000224387|transcript|ENST00000424657|antisense||n.-1548G>T|||||1548|,A|upstream_gene_variant|MODIFIER|RP3-395M20.3|ENSG00000229393|transcript|ENST00000442305|antisense||n.-327G>T|||||327|,A|upstream_gene_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000473964|retained_intron||n.-2976C>A|||||2976|,A|upstream_gene_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000462379|retained_intron||n.-3841C>A|||||3841|,A|intron_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000378486|protein_coding|11/21|c.1660-50C>A||||||,A|intron_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000449969|protein_coding|11/21|c.1579-50C>A||||||,A|intron_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000288766|protein_coding|3/6|c.214-3938C>A||||||,A|intron_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000378488|protein_coding|11/20|c.1660-50C>A||||||,A|intron_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000419816|protein_coding|11/21|c.1660-50C>A||||||,A|intron_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000343889|retained_intron|9/18|n.2033-50C>A||||||,A|intron_variant|MODIFIER|PLCH2|ENSG00000149527|transcript|ENST00000278878|protein_coding|9/18|c.1234-50C>A||||||WARNING_TRANSCRIPT_NO_START_CODON"
+region_ann <- sapply(ann, function(x) {
+  y <- strsplit(x, "\\|")[[1]][2]
+})
+region_ann <- unname(region_ann)
+table(region_ann)
+## region_ann
+##                                                          3_prime_UTR_variant 
+##                                                                          104 
+##                               5_prime_UTR_premature_start_codon_gain_variant 
+##                                                                            8 
+##                                                          5_prime_UTR_variant 
+##                                                                           36 
+##                                                conservative_inframe_deletion 
+##                                                                            1 
+##                                                      downstream_gene_variant 
+##                                                                         1311 
+##                                                           frameshift_variant 
+##                                                                            9 
+## frameshift_variant&splice_donor_variant&splice_region_variant&intron_variant 
+##                                                                            1 
+##                                                      initiator_codon_variant 
+##                                                                            1 
+##                                                            intergenic_region 
+##                                                                        10332 
+##                                                               intron_variant 
+##                                                                         6642 
+##                                                             missense_variant 
+##                                                                          101 
+##                                       missense_variant&splice_region_variant 
+##                                                                            5 
+##                                           non_coding_transcript_exon_variant 
+##                                                                           53 
+##                                       splice_acceptor_variant&intron_variant 
+##                                                                            2 
+##                                          splice_donor_variant&intron_variant 
+##                                                                            4 
+##                                                        splice_region_variant 
+##                                                                            1 
+##                                         splice_region_variant&intron_variant 
+##                                                                           17 
+##                                     splice_region_variant&synonymous_variant 
+##                                                                            1 
+##                                                                   start_lost 
+##                                                                            1 
+##                                                                  stop_gained 
+##                                                                            4 
+##                                                                    stop_lost 
+##                                                                            1 
+##                                                           synonymous_variant 
+##                                                                           47 
+##                                                        upstream_gene_variant 
+##                                                                         1679
 ```
 
 

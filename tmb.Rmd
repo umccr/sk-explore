@@ -174,7 +174,11 @@ Calculating mutations in the coding regions/exons
 
 ```{r}
 ann <- vcfR::extract.info(vcf, "ANN")
-head(ann)
+region_ann <- sapply(ann, function(x) {
+  y <- strsplit(x, "\\|")[[1]][2]
+})
+region_ann <- unname(region_ann)
+table(region_ann)
 ```
 
 
