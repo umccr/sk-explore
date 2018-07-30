@@ -183,7 +183,7 @@ mutations_megabase <- ceiling(vcf_number_rows/3200)
 
 The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and _number of mutations per megabase_ are **`r mutations_megabase`**.
 
-Calculating mutations in the coding regions/exons
+Calculating mutations in the coding regions/exons. 
 
 ```{r}
 ann <- vcfR::extract.info(vcf, "ANN")

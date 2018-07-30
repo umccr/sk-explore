@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Wed 2018-Jul-25"
+date: "Mon 2018-Jul-30"
 output: 
   html_document: 
     keep_md: yes
@@ -10,7 +10,7 @@ editor_options:
 ---
 
 
-The report describes the work done for analysing and understanding TMB on one of the ensemble somatic variant calls (`/data/cephfs/punim0010/data/Results/Patients/CUP_SC932/final/umccrised/cup_tissue/somatic/ensemble-pon-pass.vcf.gz`). Many thanks to Peter for providing specific pointers and useful explanation on how to tackle various issues in R.
+The report describes the work done for analysing and understanding TMB on one of the ensemble somatic variant calls (`/data/cephfs/punim0010/data/Results/Patients/CUP_SC932/final/umccrised/cup_tissue/somatic/ensemble-pon-pass.vcf.gz`). Many thanks to Peter for providing specific pointers and useful explanation on how to tackle various issues in R. The current script is an attempt to filter variants specifically in the coding region.
 
 Required packages
 
@@ -23,7 +23,7 @@ library(ggplot2)
 library(reticulate)
 ```
 
-Input file
+Reading in the the input file
 
 
 ```r
@@ -64,7 +64,7 @@ chr_names <- c(1:22, "X", "Y")
 names(chr_lengths) <- chr_names
 ```
 
-Declare bin size (in bases)
+Declare bin size (in bases) - it can be variable
 
 
 ```r
@@ -123,7 +123,7 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 }
 ```
 
-Count mutations in a chromosome
+Count mutations in a chromosome, using specific annotations 
 
 
 ```r
@@ -166,7 +166,7 @@ print(results)
 ```
 
 
-* Calculate number of mutations per bin for chromosomes 1, 2, 11:
+* Calculate number of mutations per bin for all chromosomes:
 
 
 ```r
@@ -259,7 +259,7 @@ binding1 <- do.call("rbind", results2) # this sucks
 binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
 ```
 
-Plotting the total number of variants across all chromosomes
+Plotting the total number of variants (filtered using specific annotations) across all chromosomes
 
 
 ```r
@@ -297,7 +297,7 @@ ggplot(df, aes(x = chr, y = mut_num)) +
 
 ![](tmb_coding_files/figure-html/total_variants_per_chrom-1.png)<!-- -->
 
-Plotting the mean of variants across all bins in a chromosome i.e. results 
+Plotting the mean of variants (filtered using specific annotations) across all bins in a chromosome i.e. results 
 
 
 ```r
@@ -309,7 +309,7 @@ ggplot(df, aes(x = chr, y = mut_num)) +
 
 ![](tmb_coding_files/figure-html/mean_of_varinats_per_bin_per_chrom-1.png)<!-- -->
 
-Plotting and comparing mutations across bins in all chromosomes
+Plotting and comparing mutations (filtered using specific annotations), across bins in all chromosomes
 
 
 ```r
@@ -343,7 +343,7 @@ mutations_megabase <- ceiling(vcf_number_rows/3200)
 
 The _total number of mutations_ in the vcf are **20361** and _number of mutations per megabase_ are **7**.
 
-Calculating mutations in the coding regions/exons
+Calculating mutations in the coding regions/exons. 
 
 
 ```r
