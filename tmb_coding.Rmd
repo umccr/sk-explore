@@ -23,7 +23,7 @@ library(ggplot2)
 library(reticulate)
 ```
 
-Input file
+Reading in the the input file
 
 ```{r}
 vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") # 20,361 variants in total
@@ -45,7 +45,7 @@ chr_names <- c(1:22, "X", "Y")
 names(chr_lengths) <- chr_names
 ```
 
-Declare bin size (in bases)
+Declare bin size (in bases) - it can be variable
 
 ```{r}
 bin_size <- 40000000
@@ -85,7 +85,7 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 }
 ```
 
-Count mutations in a chromosome
+Count mutations in a chromosome, using specific annotations 
 
 ```{r}
 count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
@@ -122,7 +122,7 @@ print(results)
 ```
 
 
-* Calculate number of mutations per bin for chromosomes 1, 2, 11:
+* Calculate number of mutations per bin for all chromosomes:
 
 ```{r}
 results2 <- vector("list", length = length(chr_names))
@@ -140,7 +140,7 @@ binding1 <- do.call("rbind", results2) # this sucks
 binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
 ```
 
-Plotting the total number of variants across all chromosomes
+Plotting the total number of variants (filtered using specific annotations) across all chromosomes
 
 ```{r total_variants_per_chrom}
 df <- data.frame(chr = chr_fac, mut_num = c(unname(x)))
@@ -150,7 +150,7 @@ ggplot(df, aes(x = chr, y = mut_num)) +
   theme_bw()
 ```
 
-Plotting the mean of variants across all bins in a chromosome i.e. results 
+Plotting the mean of variants (filtered using specific annotations) across all bins in a chromosome i.e. results 
 
 ```{r mean_of_varinats_per_bin_per_chrom}
 df <- data.frame(chr = chr_fac, mut_num <- results)
@@ -160,7 +160,7 @@ ggplot(df, aes(x = chr, y = mut_num)) +
 
 ```
 
-Plotting and comparing mutations, in coding region, across bins in all chromosomes
+Plotting and comparing mutations (filtered using specific annotations), across bins in all chromosomes
 
 ```{r mut_per_bin_per_chrom}
 df <- binding2 
