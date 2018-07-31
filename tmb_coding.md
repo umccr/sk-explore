@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Mon 2018-Jul-30"
+date: "Tue 2018-Jul-31"
 output: 
   html_document: 
     keep_md: yes
@@ -133,15 +133,22 @@ count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
      })
   region_ann <- unname(region_ann)
   #x <- cbind(chr_pos_ann$pos, findInterval(chr_pos_ann$pos, bin_vec))
-  x <- matrix(NA, nrow = length(region_ann), ncol = 2)
-  j = 1
+  #x <- matrix(NA, nrow = length(region_ann), ncol = 2)
+  #j = 1
+  dfs_list <- list()
   for (i in 1:length(region_ann)){
     if (region_ann[i] == "intergenic_region"){
-        x[j,] <- cbind(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
-        j <- j +1
+        #x[j,] <- cbind(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
+        #j <- j +1
+        df <- data.frame(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
+        dfs_list[[i]] <- df
     }
   }
-  x = x[1:(j-1),]
+  
+  #x = x[1:(j-1),]
+  #Bind rows together
+  x <- bind_rows(dfs_list)
+  
   tab <- table(x[, 2])
   df <- data.frame(bin_num = names(tab),
                    num_mut_in_bin = c(unname(tab)),
