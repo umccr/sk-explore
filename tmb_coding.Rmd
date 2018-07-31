@@ -25,7 +25,7 @@ library(reticulate)
 
 Reading in the the input file
 
-```{r}
+```{r reading_input}
 vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") # 20,361 variants in total
 #head(vcf)
 ```
@@ -34,7 +34,7 @@ Have a named vector with chr + chr_length.
 You can extract the chr_length for chr, and then bin based on that.
 In a named vector, you can access each element by name such as chr_lengths[chr_you_want].
 
-```{r}
+```{r creating_chr_vector}
 chr_lengths <- c(249250621L, 243199373L, 198022430L, 191154276L,
                  180915260L, 171115067L, 159138663L, 146364022L,
                  141213431L, 135534747L, 135006516L, 133851895L,
@@ -47,12 +47,12 @@ names(chr_lengths) <- chr_names
 
 Declare bin size (in bases) - it can be variable
 
-```{r}
+```{r bin_size}
 bin_size <- 40000000
 ```
 
 
-```{r} 
+```{r extract_chr_sort} 
 chrom <- vcfR::getCHROM(vcf)
 x <- table(chrom)
 x
@@ -68,7 +68,7 @@ chr_fac
 
 Get chromosome and filter vcf for that chromosome
 
-```{r}
+```{r filter_vcf}
 # takes a vcf and a chromosome
 # outputs df with pos + chr for that chromosome
 filter_chr <- function(x, vcf) {
@@ -79,7 +79,7 @@ filter_chr <- function(x, vcf) {
 
 Prepare bins for the specific chromosome
 
-```{r}
+```{r prepare_bins}
 bin_chr <- function(chr_lengths, chr_name, bin_size) {
   return(seq(from = 0, to = chr_lengths[chr_name], by = bin_size))
 }
@@ -87,51 +87,47 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 
 Count mutations in a chromosome, using specific annotations 
 
-```{r}
+```{r count_mutations}
 count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
   region_ann <- sapply(chr_pos_ann$ann, function(x){
      y <- strsplit(x, "\\|")[[1]][2]
      })
   region_ann <- unname(region_ann)
-  #x <- cbind(chr_pos_ann$pos, findInterval(chr_pos_ann$pos, bin_vec))
-  #x <- matrix(NA, nrow = length(region_ann), ncol = 2)
-  #j = 1
   dfs_list <- list()
   for (i in 1:length(region_ann)){
     if (region_ann[i] == "intergenic_region"){
-        #x[j,] <- cbind(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
-        #j <- j +1
         df <- data.frame(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
         dfs_list[[i]] <- df
     }
   }
-  
-  #x = x[1:(j-1),]
-  #Bind rows together
-  x <- bind_rows(dfs_list)
-  
-  tab <- table(x[, 2])
-  df <- data.frame(bin_num = names(tab),
+
+#Bind rows together
+combined <- bind_rows(dfs_list)
+tab <- table(combined[, 2])
+df <- data.frame(bin_num = names(tab),
                    num_mut_in_bin = c(unname(tab)),
                    stringsAsFactors = FALSE)
-  df
+#df
 }
 ```
 
 Apply same function to all chromosomes. This gives a numerical vector containing the number of variants for each chromosome 
 
-```{r}
+```{r apply_functions}
 results <- vector("numeric", length = length(chr_names))
+results3 <- vector("numeric", length = length(chr_names))
 for (i in 1:length(chr_names)) {
   results[i] <- mean(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
+  results3[i] <- sum(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
 }
 print(results)
+print(results3)
 ```
 
 
 * Calculate number of mutations per bin for all chromosomes:
 
-```{r}
+```{r mutations_per_bin}
 results2 <- vector("list", length = length(chr_names))
 for (i in 1:length(chr_names)) {
   results2[[i]] <- count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))
@@ -140,17 +136,17 @@ for (i in 1:length(chr_names)) {
 
 * Turn a list that contains X data.frames to a single data.frame
 
-```{r}
+```{r more_data_conversions}
 names(results2) <- paste("chr", chr_names, sep = "")
 str(results2)
-binding1 <- do.call("rbind", results2) # this sucks
+#binding1 <- do.call("rbind", results2) # this sucks
 binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
 ```
 
 Plotting the total number of variants (filtered using specific annotations) across all chromosomes
 
 ```{r total_variants_per_chrom}
-df <- data.frame(chr = chr_fac, mut_num = c(unname(x)))
+df <- data.frame(chr = chr_fac, mut_num = results3)
 df
 ggplot(df, aes(x = chr, y = mut_num)) +
   geom_point(colour = "purple") +
@@ -182,7 +178,7 @@ bp + guides(fill=FALSE)
 
 Calculating mutations per megabase
 
-```{r}
+```{r mutations_per_megabase}
 fix <- getFIX(vcf)
 vcf_number_rows <- nrow(fix)
 mutations_megabase <- ceiling(vcf_number_rows/3200) 
@@ -192,7 +188,7 @@ The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and _numb
 
 Calculating mutations in the coding regions/exons. 
 
-```{r}
+```{r test_code}
 ann <- vcfR::extract.info(vcf, "ANN")
 region_ann <- sapply(ann, function(x){
   y <- strsplit(x, "\\|")[[1]][2]

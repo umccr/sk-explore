@@ -132,28 +132,21 @@ count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
      y <- strsplit(x, "\\|")[[1]][2]
      })
   region_ann <- unname(region_ann)
-  #x <- cbind(chr_pos_ann$pos, findInterval(chr_pos_ann$pos, bin_vec))
-  #x <- matrix(NA, nrow = length(region_ann), ncol = 2)
-  #j = 1
   dfs_list <- list()
   for (i in 1:length(region_ann)){
     if (region_ann[i] == "intergenic_region"){
-        #x[j,] <- cbind(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
-        #j <- j +1
         df <- data.frame(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
         dfs_list[[i]] <- df
     }
   }
-  
-  #x = x[1:(j-1),]
-  #Bind rows together
-  x <- bind_rows(dfs_list)
-  
-  tab <- table(x[, 2])
-  df <- data.frame(bin_num = names(tab),
+
+#Bind rows together
+combined <- bind_rows(dfs_list)
+tab <- table(combined[, 2])
+df <- data.frame(bin_num = names(tab),
                    num_mut_in_bin = c(unname(tab)),
                    stringsAsFactors = FALSE)
-  df
+#df
 }
 ```
 
@@ -162,14 +155,19 @@ Apply same function to all chromosomes. This gives a numerical vector containing
 
 ```r
 results <- vector("numeric", length = length(chr_names))
+results3 <- vector("numeric", length = length(chr_names))
 for (i in 1:length(chr_names)) {
   results[i] <- mean(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
+  results3[i] <- sum(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
 }
 print(results)
 ##  [1]  74.28571  91.85714 109.60000 172.40000 160.80000 114.80000 137.75000
 ##  [8] 134.75000 105.25000  98.25000  86.75000  75.25000 244.33333 108.00000
 ## [15]  53.66667  81.00000  46.50000 157.50000  31.50000  68.50000  96.50000
 ## [22]  17.00000 382.75000   2.00000
+print(results3)
+##  [1]  520  643  548  862  804  574  551  539  421  393  347  301  733  324
+## [15]  161  243   93  315   63  137  193   34 1531    2
 ```
 
 
@@ -262,7 +260,7 @@ str(results2)
 ##  $ chrY :'data.frame':	1 obs. of  2 variables:
 ##   ..$ bin_num       : chr "1"
 ##   ..$ num_mut_in_bin: int 2
-binding1 <- do.call("rbind", results2) # this sucks
+#binding1 <- do.call("rbind", results2) # this sucks
 binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
 ```
 
@@ -270,32 +268,32 @@ Plotting the total number of variants (filtered using specific annotations) acro
 
 
 ```r
-df <- data.frame(chr = chr_fac, mut_num = c(unname(x)))
+df <- data.frame(chr = chr_fac, mut_num = results3)
 df
 ##    chr mut_num
-## 1    1    1142
-## 2    2    1434
-## 3    3    1155
-## 4    4    1543
-## 5    5    1502
-## 6    6    1014
-## 7    7    1130
-## 8    8    1187
-## 9    9     706
-## 10  10     828
-## 11  11     875
-## 12  12     712
-## 13  13    1046
-## 14  14     689
-## 15  15     448
-## 16  16     562
-## 17  17     274
-## 18  18     585
-## 19  19     290
-## 20  20     284
-## 21  21     368
-## 22  22     130
-## 23   X    2455
+## 1    1     520
+## 2    2     643
+## 3    3     548
+## 4    4     862
+## 5    5     804
+## 6    6     574
+## 7    7     551
+## 8    8     539
+## 9    9     421
+## 10  10     393
+## 11  11     347
+## 12  12     301
+## 13  13     733
+## 14  14     324
+## 15  15     161
+## 16  16     243
+## 17  17      93
+## 18  18     315
+## 19  19      63
+## 20  20     137
+## 21  21     193
+## 22  22      34
+## 23   X    1531
 ## 24   Y       2
 ggplot(df, aes(x = chr, y = mut_num)) +
   geom_point(colour = "purple") +
