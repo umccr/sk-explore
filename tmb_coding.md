@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Tue 2018-Jul-31"
+date: "Fri 2018-Aug-03"
 output: 
   html_document: 
     keep_md: yes
@@ -407,5 +407,10 @@ table(region_ann)
 ##                                                                         1679
 ```
 
+*TO DO*
 
+Refer to trello card for specific pointers.
+`https://trello.com/c/2TSThlBH/118-add-somatic-burden-to-reports`
+
+Longer runtime - speicifcally for `count_mut_per_bin` and `mutations_per_bin` functions. Tried replacing matrix with dataframe but still not good enough - discuss with R-guru (Peter) about ways to improve it. One point is, these both blocks are refering to same function. So probably try merging these in one call.
 
