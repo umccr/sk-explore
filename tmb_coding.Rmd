@@ -85,7 +85,7 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 }
 ```
 
-Count mutations in a chromosome, using specific annotations 
+Count mutations in a chromosome, using specific annotations. For now focussing on using the annotation "coding_sequence_variant", i.e. a sequence variant that changes coding sequence (http://sequenceontology.org/browser/current_svn/term/SO:0001580).
 
 ```{r count_mutations}
 count_mut_per_bin <- function(chr_pos_ann, bin_vec) {

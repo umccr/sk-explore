@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Fri 2018-Aug-03"
+date: "Mon 2018-Aug-13"
 output: 
   html_document: 
     keep_md: yes
@@ -123,7 +123,7 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 }
 ```
 
-Count mutations in a chromosome, using specific annotations 
+Count mutations in a chromosome, using specific annotations. For now focussing on using the annotation "coding_sequence_variant", i.e. a sequence variant that changes coding sequence (http://sequenceontology.org/browser/current_svn/term/SO:0001580).
 
 
 ```r
