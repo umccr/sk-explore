@@ -85,7 +85,7 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 }
 ```
 
-Count mutations in a chromosome, using specific annotations. For now focussing on using the annotation "coding_sequence_variant", i.e. a sequence variant that changes coding sequence (http://sequenceontology.org/browser/current_svn/term/SO:0001580).
+Count mutations in a chromosome, using specific annotations. For now focussing on using multiple annotations that are more or less related to coding sequence, as the vcf I am testing this code on has no variant with the annotation "coding_sequence_variant", i.e. a sequence variant that changes coding sequence (http://sequenceontology.org/browser/current_svn/term/SO:0001580).
 
 ```{r count_mutations}
 count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
@@ -95,18 +95,26 @@ count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
   region_ann <- unname(region_ann)
   dfs_list <- list()
   for (i in 1:length(region_ann)){
-    if (region_ann[i] == "intergenic_region"){
+    if (region_ann[i] == "frameshift_variant" | region_ann[i] == "missense_variant" | 
+        region_ann[i] == "missense_variant&splice_region_variant"){
         df <- data.frame(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
         dfs_list[[i]] <- df
     }
   }
-
-#Bind rows together
-combined <- bind_rows(dfs_list)
-tab <- table(combined[, 2])
-df <- data.frame(bin_num = names(tab),
+  
+#check if the annotation used for filtering exists in the vcf - i.e. there are rows in the combined df
+if( length(dfs_list) != 0){
+  #Bind rows together
+  combined <- bind_rows(dfs_list)
+  tab <- table(combined[, 2])
+  df <- data.frame(bin_num = names(tab),
                    num_mut_in_bin = c(unname(tab)),
                    stringsAsFactors = FALSE)
+} else {
+  df <- data.frame(bin_num = 0,
+                   num_mut_in_bin = 0,
+                   stringsAsFactors = FALSE)
+}
 #df
 }
 ```
@@ -117,8 +125,14 @@ Apply same function to all chromosomes. This gives a numerical vector containing
 results <- vector("numeric", length = length(chr_names))
 results3 <- vector("numeric", length = length(chr_names))
 for (i in 1:length(chr_names)) {
-  results[i] <- mean(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
-  results3[i] <- sum(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
+  #check if there exists any mutation with the specified annotation, in the vcf. 
+  if(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[1, 1] != 0){
+    results[i] <- mean(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
+    results3[i] <- sum(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
+  } else{
+    results[i] <- 0
+    results3[i] <- 0
+  }
 }
 print(results)
 print(results3)
@@ -130,17 +144,39 @@ print(results3)
 ```{r mutations_per_bin}
 results2 <- vector("list", length = length(chr_names))
 for (i in 1:length(chr_names)) {
-  results2[[i]] <- count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))
+  #check if there exists any mutation with the specified annotation, in the vcf. 
+  if(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[1, 1] != 0){
+    results2[[i]] <- count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))
+  }
 }
 ```
 
 * Turn a list that contains X data.frames to a single data.frame
 
 ```{r more_data_conversions}
-names(results2) <- paste("chr", chr_names, sep = "")
-str(results2)
-#binding1 <- do.call("rbind", results2) # this sucks
-binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
+if (all(sapply(results2, function(x) is.null(x))) != TRUE){
+  names(results2) <- paste("chr", chr_names, sep = "")
+  str(results2)
+  #binding1 <- do.call("rbind", results2) # this sucks
+  binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
+}
+```
+
+Plotting and comparing mutations (filtered using specific annotations), across bins in all chromosomes
+
+```{r mut_per_bin_per_chrom}
+if (exists("binding2")){
+  df <- binding2 
+  df_new <- dplyr::mutate(df, chr_factor = factor(chromosome, levels = gtools::mixedsort(unique(chromosome))))
+  head(df)
+  bp <- ggplot(df_new, aes(x = bin_num, y = num_mut_in_bin)) +
+    geom_bar(stat = "identity", fill="blue", colour = "pink") +
+    facet_wrap(~chr_factor) +
+    theme_bw(base_size = 10)
+  bp + guides(fill=FALSE)
+} else {
+  print("No mutations present with the speicifed annotation")
+}
 ```
 
 Plotting the total number of variants (filtered using specific annotations) across all chromosomes
@@ -161,19 +197,6 @@ ggplot(df, aes(x = chr, y = mut_num)) +
   geom_point(colour = "red") +
   theme_bw()
 
-```
-
-Plotting and comparing mutations (filtered using specific annotations), across bins in all chromosomes
-
-```{r mut_per_bin_per_chrom}
-df <- binding2 
-df_new <- dplyr::mutate(df, chr_factor = factor(chromosome, levels = gtools::mixedsort(unique(chromosome))))
-head(df)
-bp <- ggplot(df_new, aes(x = bin_num, y = num_mut_in_bin)) +
-  geom_bar(stat = "identity", fill="blue", colour = "pink") +
-  facet_wrap(~chr_factor) +
-  theme_bw(base_size = 10)
-bp + guides(fill=FALSE)
 ```
 
 Calculating mutations per megabase
