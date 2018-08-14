@@ -128,12 +128,14 @@ Count mutations in a chromosome, using specific annotations. For now focussing o
 
 ```r
 count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
+  #extract only annotations form vcf
   region_ann <- sapply(chr_pos_ann$ann, function(x){
      y <- strsplit(x, "\\|")[[1]][2]
      })
   region_ann <- unname(region_ann)
   dfs_list <- list()
   for (i in 1:length(region_ann)){
+    #Filter annotations of interest 
     if (region_ann[i] == "frameshift_variant" | region_ann[i] == "missense_variant" | 
         region_ann[i] == "missense_variant&splice_region_variant"){
         df <- data.frame(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
@@ -202,6 +204,7 @@ for (i in 1:length(chr_names)) {
 
 
 ```r
+#check if results2 list does not have just all NULLs
 if (all(sapply(results2, function(x) is.null(x))) != TRUE){
   names(results2) <- paste("chr", chr_names, sep = "")
   str(results2)
