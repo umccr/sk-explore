@@ -70,10 +70,13 @@ Get chromosome and filter vcf for that chromosome
 
 ```{r filter_vcf}
 # takes a vcf and a chromosome
-# outputs df with pos + chr for that chromosome
-filter_chr <- function(x, vcf) {
-  vcf_chr_pos_ann <- data.frame(chr=getCHROM(vcf), pos=getPOS(vcf), ann=vcfR::extract.info(vcf, "ANN"), stringsAsFactors = FALSE)
-  return(filter(vcf_chr_pos_ann, chr == x))
+# outputs df with pos + annotation for each variant of that chromosome
+filter_chr <- function(chrom, vcf) {
+  vcf_chr_pos_ann <- data.frame(chr = getCHROM(vcf),
+                                pos = getPOS(vcf),
+                                ann = extract.info(vcf, "ANN"),
+                                stringsAsFactors = FALSE)
+  return(filter(vcf_chr_pos_ann, chr == chrom))
 }
 ```
 
@@ -88,36 +91,68 @@ bin_chr <- function(chr_lengths, chr_name, bin_size) {
 Count mutations in a chromosome, using specific annotations. For now focussing on using multiple annotations that are more or less related to coding sequence, as the vcf I am testing this code on has no variant with the annotation "coding_sequence_variant", i.e. a sequence variant that changes coding sequence (http://sequenceontology.org/browser/current_svn/term/SO:0001580).
 
 ```{r count_mutations}
+# What does this function do?
+# Take a df with chr-pos-ann (from filter_chr) and a bin vec (from bin_chr)
+# Return a df where col1 = bin_num, col2 = number of mutations in that bin
+# Try it out for chr1 first.
+
+chr1_pos_ann <- filter_chr(chr_names[1], vcf) # chr-pos-ann for chr1 ** this takes a couple seconds for chr1
+head(chr1_pos_ann, 1)
+chr1_bins <- bin_chr(chr_lengths, chr_names[1], bin_size) # 40Mb bins for chr1
+(mut_in_chr1_bins <- count_mut_per_bin(chr1_pos_ann, chr1_bins))
+
+# Does the output make sense?
+region_ann <- unname(sapply(chr1_pos_ann$ann, function(x) {
+  strsplit(x, "\\|")[[1]][2]
+}))
+
+table(region_ann) # yep, 14 mutations with those region_ann
+
 count_mut_per_bin <- function(chr_pos_ann, bin_vec) {
   #extract only annotations form vcf
   region_ann <- sapply(chr_pos_ann$ann, function(x){
-     y <- strsplit(x, "\\|")[[1]][2]
-     })
-  region_ann <- unname(region_ann)
+    y <- strsplit(x, "\\|")[[1]][2] # this selects the second element from the split string 'synonymous_variant', 'missense_variant'...
+  })
+  region_ann <- unname(region_ann) # this is an unnamed character vector of 'synonymous_variant', 'missense_variant'...
   dfs_list <- list()
-  for (i in 1:length(region_ann)){
+  # For each element in the vector, do something. Whenever you say something
+  # like that in R, you should immediately think that R is already 'vectorised'. See e.g. http://www.noamross.net/blog/2014/4/16/vectorization-in-r--why.html
+  # You don't need a for loop to iterate over an atomic vector. Just use the vector as is, and check if it is equal to those strings.
+  # e.g. try region_ann %in% c("foo", "bar", "baz"). This will probably simplify your life. Or not. Just try it out and see. At least you'll get to see how
+  # R actually works ;-)
+  for (i in 1:length(region_ann)) {
     #Filter annotations of interest 
-    if (region_ann[i] == "frameshift_variant" | region_ann[i] == "missense_variant" | 
-        region_ann[i] == "missense_variant&splice_region_variant"){
-        df <- data.frame(chr_pos_ann[i,2], findInterval(chr_pos_ann[i,2], bin_vec))
-        dfs_list[[i]] <- df
+    # Q: why are we interested in only these annotations?
+    # So if your element is of interest..
+    if (region_ann[i] == "frameshift_variant" | 
+        region_ann[i] == "missense_variant" | 
+        region_ann[i] == "missense_variant&splice_region_variant") {
+      # create a df with pos and findInterval
+      # e.g. df with '1801277', '1' columns
+      df <- data.frame(chr_pos_ann[i, 2], findInterval(chr_pos_ann[i, 2], bin_vec))
+      # then chuck that into the list
+      dfs_list[[i]] <- df
     }
   }
+  # So up to this point you have a list with n dfs with 1 row.
   
-#check if the annotation used for filtering exists in the vcf - i.e. there are rows in the combined df
-if( length(dfs_list) != 0){
-  #Bind rows together
-  combined <- bind_rows(dfs_list)
-  tab <- table(combined[, 2])
-  df <- data.frame(bin_num = names(tab),
-                   num_mut_in_bin = c(unname(tab)),
-                   stringsAsFactors = FALSE)
-} else {
-  df <- data.frame(bin_num = 0,
-                   num_mut_in_bin = 0,
-                   stringsAsFactors = FALSE)
-}
-#df
+  #check if the annotation used for filtering exists in the vcf - i.e. there are rows in the combined df
+  if (length(dfs_list) != 0) {
+    #Bind rows together
+    combined <- bind_rows(dfs_list) # ok, so this will give you a df of pos-findInterval with n rows
+    tab <- table(combined[, 2]) # table of the findInterval thingy
+    df <- data.frame(bin_num = names(tab),
+                     num_mut_in_bin = c(unname(tab)),
+                     stringsAsFactors = FALSE)
+  } else {
+    df <- data.frame(bin_num = 0,
+                     num_mut_in_bin = 0,
+                     stringsAsFactors = FALSE)
+  }
+  #df 
+  # I'm not sure why you've commented df out. A function needs to return something. 
+  # By coincidence I think it returns df since the last expression in your if-else
+  # is df. Better be clearer here.
 }
 ```
 
@@ -126,9 +161,14 @@ Apply same function to all chromosomes. This gives a numerical vector containing
 ```{r apply_functions}
 results <- vector("numeric", length = length(chr_names))
 results3 <- vector("numeric", length = length(chr_names))
+# So loop over the 24 chromosomes
 for (i in 1:length(chr_names)) {
+  # count_mut_per_bin
   #check if there exists any mutation with the specified annotation, in the vcf. 
-  if(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[1, 1] != 0){
+  # Can you see that you're using the same function 3 times here? Think about
+  # how you could store the results of it in one variable, then check the if,
+  # then take its mean/sum.
+  if (count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[1, 1] != 0) {
     results[i] <- mean(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
     results3[i] <- sum(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
   } else{
@@ -147,7 +187,7 @@ print(results3)
 results2 <- vector("list", length = length(chr_names))
 for (i in 1:length(chr_names)) {
   #check if there exists any mutation with the specified annotation, in the vcf. 
-  if(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[1, 1] != 0){
+  if (count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[1, 1] != 0) {
     results2[[i]] <- count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))
   }
 }
@@ -157,8 +197,8 @@ for (i in 1:length(chr_names)) {
 
 ```{r more_data_conversions}
 #check if results2 list does not have just all NULLs
-if (all(sapply(results2, function(x) is.null(x))) != TRUE){
-  names(results2) <- paste("chr", chr_names, sep = "")
+if (all(sapply(results2, function(x) is.null(x))) != TRUE) {
+  names(results2) <- paste("chr", chr_names, sep = "") # check out ?paste0
   str(results2)
   #binding1 <- do.call("rbind", results2) # this sucks
   binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
@@ -168,15 +208,15 @@ if (all(sapply(results2, function(x) is.null(x))) != TRUE){
 Plotting and comparing mutations (filtered using specific annotations), across bins in all chromosomes
 
 ```{r mut_per_bin_per_chrom}
-if (exists("binding2")){
+if (exists("binding2")) {
   df <- binding2 
   df_new <- dplyr::mutate(df, chr_factor = factor(chromosome, levels = gtools::mixedsort(unique(chromosome))))
   head(df)
   bp <- ggplot(df_new, aes(x = bin_num, y = num_mut_in_bin)) +
-    geom_bar(stat = "identity", fill="blue", colour = "pink") +
+    geom_bar(stat = "identity", fill = "blue", colour = "pink") +
     facet_wrap(~chr_factor) +
     theme_bw(base_size = 10)
-  bp + guides(fill=FALSE)
+  bp + guides(fill = FALSE)
 } else {
   print("No mutations present with the speicifed annotation")
 }
