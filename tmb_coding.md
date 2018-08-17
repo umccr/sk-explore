@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Tue 2018-Aug-14"
+date: "Thu 2018-Aug-16"
 output: 
   html_document: 
     keep_md: yes
@@ -169,8 +169,9 @@ results3 <- vector("numeric", length = length(chr_names))
 for (i in 1:length(chr_names)) {
   #check if there exists any mutation with the specified annotation, in the vcf. 
   if(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[1, 1] != 0){
-    results[i] <- mean(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
-    results3[i] <- sum(count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))[, 2])
+    res <- count_mut_per_bin(filter_chr(chr_names[i], vcf), bin_chr(chr_lengths, chr_names[i], bin_size))
+    results[i] <- mean(res[, 2])
+    results3[i] <- sum(res[, 2])
   } else{
     results[i] <- 0
     results3[i] <- 0
