@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Thu 2018-Aug-16"
+date: "Mon 2018-Aug-20"
 output: 
   html_document: 
     keep_md: yes
@@ -9,6 +9,11 @@ editor_options:
   chunk_output_type: console
 ---
 
+
+Tumour mutational burden (TMB) "measures the quantity of mutations found in a tumor" (https://www.focr.org/tmb). Also, it is defined as "a quantitative measure of the total number of mutations per coding area of a tumor genome." (https://www.genengnews.com/gen-exclusives/the-promise-of-tumor-mutational-burden-for-cancer-immunotherapy/77900833).
+This type of biomarker is currently under study to evaluate whether it may help predict the likelihood a patient's response to immunotherapy in a range of advanced cancers.
+
+As multiple definition indicate, currently, there is a lack of standardization for TMB calculation and reporting. However, it is imperative to use this information to further inform clinically-meaningful results, which will support informed decision-making for patients. Most importantly, it provides a quantitative measure that can be used to better inform treatment decisions.
 
 The report describes the work done for analysing and understanding TMB on one of the ensemble somatic variant calls (`/data/cephfs/punim0010/data/Results/Patients/CUP_SC932/final/umccrised/cup_tissue/somatic/ensemble-pon-pass.vcf.gz`). Many thanks to Peter for providing specific pointers and useful explanation on how to tackle various issues in R. The current script is an attempt to filter variants specifically in the coding region.
 
