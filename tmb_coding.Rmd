@@ -50,7 +50,7 @@ chr_names <- c(1:22, "X", "Y")
 names(chr_lengths) <- chr_names
 ```
 
-Declare bin size (in bases) - it can be variable
+Declare bin size/target size (in bases) - it can be variable. This size will be used to create bins for all the chromosomes in the vcf and count how many mutations are in each bin.
 
 ```{r bin_size}
 bin_size <- 40000000
@@ -218,7 +218,7 @@ mutations_megabase <- ceiling(vcf_number_rows/3200)
 
 The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and _number of mutations per megabase_ are **`r mutations_megabase`**.
 
-Calculating mutations in the coding regions/exons. 
+Calculating the number of mutations in the coding regions/exons. 
 
 ```{r test_code}
 ann <- vcfR::extract.info(vcf, "ANN")
