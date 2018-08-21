@@ -185,7 +185,7 @@ for (i in 1:length(chr_names)) {
 
 * Turn a list that contains X data.frames to a single data.frame
 
-```{r more_data_conversions}
+```{r more_data_conversions, results='hide'}
 #check if results2 list does not have just all NULLs
 if (all(sapply(results2, function(x) is.null(x))) != TRUE){
   names(results2) <- paste("chr", chr_names, sep = "")

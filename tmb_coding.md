@@ -21,11 +21,11 @@ Required packages
 
 
 ```r
-library(vcfR)
-library(dplyr)
+library(vcfR, warn.conflicts=F, quietly=T)
+library(dplyr, warn.conflicts=F, quietly=T)
 ## Warning: package 'dplyr' was built under R version 3.5.1
-library(ggplot2)
-library(reticulate)
+library(ggplot2, warn.conflicts=F, quietly=T)
+library(reticulate, warn.conflicts=F, quietly=T)
 ```
 
 Reading in the the input file
@@ -33,23 +33,6 @@ Reading in the the input file
 
 ```r
 vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") # 20,361 variants in total
-## Scanning file to determine attributes.
-## File attributes:
-##   meta lines: 343
-##   header_line: 344
-##   variant count: 20361
-##   column count: 11
-## Meta line 343 read in.
-## All meta lines processed.
-## gt matrix initialized.
-## Character matrix gt created.
-##   Character matrix gt rows: 20361
-##   Character matrix gt cols: 11
-##   skip: 0
-##   nrows: 20361
-##   row_num: 0
-## Processed variant 1000Processed variant 2000Processed variant 3000Processed variant 4000Processed variant 5000Processed variant 6000Processed variant 7000Processed variant 8000Processed variant 9000Processed variant 10000Processed variant 11000Processed variant 12000Processed variant 13000Processed variant 14000Processed variant 15000Processed variant 16000Processed variant 17000Processed variant 18000Processed variant 19000Processed variant 20000Processed variant: 20361
-## All variants processed
 #head(vcf)
 ```
 
@@ -109,7 +92,7 @@ chr_fac
 ## 24 Levels: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 ... Y
 ```
 
-*Calculating mutations per megabase*
+**Calculating mutations per megabase**
 
 
 ```r
@@ -119,9 +102,9 @@ mutations_megabase <- ceiling(vcf_number_rows/3200)
 ```
 
 * The _total number of mutations_ in the vcf are **20361** and 
-* _number of mutations per megabase_ are **7**.
+* Number of mutations per megabase_ are **7**.
 
-*Counting mutations for different annotations*
+**Counting mutations for different annotations**
 
 
 ```r
@@ -290,77 +273,6 @@ if (all(sapply(results2, function(x) is.null(x))) != TRUE){
   #binding1 <- do.call("rbind", results2) # this sucks
   binding2 <- dplyr::bind_rows(results2, .id = "chromosome")
 }
-## List of 24
-##  $ chr1 :'data.frame':	5 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:5] "1" "2" "4" "5" ...
-##   ..$ num_mut_in_bin: int [1:5] 5 1 2 3 3
-##  $ chr2 :'data.frame':	4 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:4] "2" "3" "5" "6"
-##   ..$ num_mut_in_bin: int [1:4] 1 1 2 3
-##  $ chr3 :'data.frame':	4 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:4] "1" "2" "3" "4"
-##   ..$ num_mut_in_bin: int [1:4] 1 3 1 1
-##  $ chr4 :'data.frame':	2 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:2] "1" "3"
-##   ..$ num_mut_in_bin: int [1:2] 1 1
-##  $ chr5 :'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "2" "4" "5"
-##   ..$ num_mut_in_bin: int [1:3] 1 2 1
-##  $ chr6 :'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "1" "2" "5"
-##   ..$ num_mut_in_bin: int [1:3] 3 1 1
-##  $ chr7 :'data.frame':	4 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:4] "1" "2" "3" "4"
-##   ..$ num_mut_in_bin: int [1:4] 1 1 4 2
-##  $ chr8 :'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "1" "2" "3"
-##   ..$ num_mut_in_bin: int [1:3] 2 1 1
-##  $ chr9 :'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "1" "2" "4"
-##   ..$ num_mut_in_bin: int [1:3] 2 1 1
-##  $ chr10:'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "1" "2" "4"
-##   ..$ num_mut_in_bin: int [1:3] 1 3 1
-##  $ chr11:'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "1" "2" "3"
-##   ..$ num_mut_in_bin: int [1:3] 2 2 1
-##  $ chr12:'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "2" "3" "4"
-##   ..$ num_mut_in_bin: int [1:3] 2 1 3
-##  $ chr13:'data.frame':	2 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:2] "1" "2"
-##   ..$ num_mut_in_bin: int [1:2] 2 2
-##  $ chr14:'data.frame':	2 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:2] "1" "3"
-##   ..$ num_mut_in_bin: int [1:2] 1 2
-##  $ chr15:'data.frame':	1 obs. of  2 variables:
-##   ..$ bin_num       : chr "1"
-##   ..$ num_mut_in_bin: int 1
-##  $ chr16:'data.frame':	3 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:3] "1" "2" "3"
-##   ..$ num_mut_in_bin: int [1:3] 2 4 1
-##  $ chr17:'data.frame':	1 obs. of  2 variables:
-##   ..$ bin_num       : chr "1"
-##   ..$ num_mut_in_bin: int 3
-##  $ chr18:'data.frame':	1 obs. of  2 variables:
-##   ..$ bin_num       : chr "2"
-##   ..$ num_mut_in_bin: int 1
-##  $ chr19:'data.frame':	2 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:2] "1" "2"
-##   ..$ num_mut_in_bin: int [1:2] 7 3
-##  $ chr20:'data.frame':	1 obs. of  2 variables:
-##   ..$ bin_num       : chr "2"
-##   ..$ num_mut_in_bin: int 1
-##  $ chr21:'data.frame':	1 obs. of  2 variables:
-##   ..$ bin_num       : chr "1"
-##   ..$ num_mut_in_bin: int 1
-##  $ chr22:'data.frame':	2 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:2] "1" "2"
-##   ..$ num_mut_in_bin: int [1:2] 2 1
-##  $ chrX :'data.frame':	4 obs. of  2 variables:
-##   ..$ bin_num       : chr [1:4] "1" "2" "3" "4"
-##   ..$ num_mut_in_bin: int [1:4] 2 5 1 3
-##  $ chrY : NULL
 ```
 
 Plotting and comparing mutations (filtered using specific annotations), across bins in all chromosomes
