@@ -22,15 +22,15 @@ The report describes the work done for analysing and understanding TMB on one of
 Required packages
 
 ```{r, message=FALSE}
-library(vcfR)
-library(dplyr)
-library(ggplot2)
-library(reticulate)
+library(vcfR, warn.conflicts=F, quietly=T)
+library(dplyr, warn.conflicts=F, quietly=T)
+library(ggplot2, warn.conflicts=F, quietly=T)
+library(reticulate, warn.conflicts=F, quietly=T)
 ```
 
 Reading in the the input file
 
-```{r reading_input}
+```{r reading_input, message=FALSE, warning=FALSE, results='hide'}
 vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") # 20,361 variants in total
 #head(vcf)
 ```
@@ -51,6 +51,8 @@ names(chr_lengths) <- chr_names
 ```
 
 Declare bin size/target size (in bases) - it can be variable. This size will be used to create bins for all the chromosomes in the vcf and count how many mutations are in each bin.
+*NOTE:*
+Binning the chromosomes has no biological significance/basis. Just trying to play with different R fucnctions. 
 
 ```{r bin_size}
 bin_size <- 40000000
@@ -69,6 +71,28 @@ x <- x[sorted_ind]
 x
 chr_fac <- factor(names(x), levels = gtools::mixedsort(names(x)))
 chr_fac
+```
+
+**Calculating mutations per megabase**
+
+```{r mutations_per_megabase}
+fix <- getFIX(vcf)
+vcf_number_rows <- nrow(fix)
+mutations_megabase <- ceiling(vcf_number_rows/3200) 
+```
+
+* The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and 
+* Number of mutations per megabase_ are **`r mutations_megabase`**.
+
+**Counting mutations for different annotations**
+
+```{r test_code}
+ann <- vcfR::extract.info(vcf, "ANN")
+region_ann <- sapply(ann, function(x){
+  y <- strsplit(x, "\\|")[[1]][2]
+})
+region_ann <- unname(region_ann)
+table(region_ann)
 ```
 
 Get chromosome and filter vcf for that chromosome
@@ -208,30 +232,7 @@ ggplot(df, aes(x = chr, y = mut_num)) +
 
 ```
 
-Calculating mutations per megabase
 
-```{r mutations_per_megabase}
-fix <- getFIX(vcf)
-vcf_number_rows <- nrow(fix)
-mutations_megabase <- ceiling(vcf_number_rows/3200) 
-```
 
-The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and _number of mutations per megabase_ are **`r mutations_megabase`**.
-
-Calculating the number of mutations in the coding regions/exons. 
-
-```{r test_code}
-ann <- vcfR::extract.info(vcf, "ANN")
-region_ann <- sapply(ann, function(x){
-  y <- strsplit(x, "\\|")[[1]][2]
-})
-region_ann <- unname(region_ann)
-table(region_ann)
-```
-
-*Note*
-
-Refer to trello card for specific pointers.
-`https://trello.com/c/2TSThlBH/118-add-somatic-burden-to-reports`
 
 
