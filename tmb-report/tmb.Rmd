@@ -1,5 +1,5 @@
 ---
-  title: "Tumour Mutational Burden (TMB)"
+title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
 date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
 output:
@@ -16,9 +16,7 @@ knitr::opts_chunk$set(collapse = TRUE) # global setup
 Tumour mutational burden (TMB) "measures the quantity of mutations found in a tumor" (https://www.focr.org/tmb). Also, it is defined as "a quantitative measure of the total number of mutations per coding area of a tumor genome." (https://www.genengnews.com/gen-exclusives/the-promise-of-tumor-mutational-burden-for-cancer-immunotherapy/77900833).
 This type of biomarker is currently under study to evaluate whether it may help predict the likelihood a patient's response to immunotherapy in a range of advanced cancers.
 
-As multiple definition indicate, currently, there is a lack of standardization for TMB calculation and reporting. However, it is imperative to use this information to further inform clinically-meaningful results, which will support informed decision-making for patients. Most importantly, it provides a quantitative measure that can be used to better inform treatment decisions.
-
-The report describes the work done for analysing and understanding TMB on one of the ensemble somatic variant calls (`/data/cephfs/punim0010/data/Results/Patients/CUP_SC932/final/umccrised/cup_tissue/somatic/ensemble-pon-pass.vcf.gz`). Many thanks to Peter for providing specific pointers and useful explanation on how to tackle various issues in R. The current script is an attempt to filter variants specifically in the coding region.
+As multiple definitions indicate, currently, there is a lack of standardization for TMB calculation and reporting. However, it is imperative to use this information to further inform clinically-meaningful results, which will support informed decision-making for patients. 
 
 Required packages
 
@@ -28,4 +26,31 @@ library(dplyr, warn.conflicts=F, quietly=T)
 library(ggplot2, warn.conflicts=F, quietly=T)
 library(reticulate, warn.conflicts=F, quietly=T)
 ```
+
+```{r}
+vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") 
+
+#Calculating mutations per megabase
+fix <- getFIX(vcf)
+vcf_number_rows <- nrow(fix)
+mutations_megabase <- ceiling(vcf_number_rows/3200)
+
+#Summarizing annotations for variants in the vcf
+ann <- vcfR::extract.info(vcf, "ANN")
+region_ann <- sapply(ann, function(x){
+  y <- strsplit(x, "\\|")[[1]][2]
+})
+region_ann <- unname(region_ann)
+table(region_ann)
+
+```
+
+* The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and 
+* Number of mutations per megabase_ are **`r mutations_megabase`**.
+
+
+
+
+
+
 
