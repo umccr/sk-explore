@@ -31,8 +31,7 @@ library(reticulate, warn.conflicts=F, quietly=T)
 Reading in the the input file
 
 ```{r reading_input, message=FALSE, warning=FALSE, results='hide'}
-vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") # 20,361 variants in total
-#head(vcf)
+vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") 
 ```
 
 Have a named vector with chr + chr_length.
