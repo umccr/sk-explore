@@ -4,7 +4,7 @@ author: "Sehrish Kanwal"
 date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
 output:
   html_document:
-  keep_md: yes
+    keep_md: true
 editor_options:
   chunk_output_type: console
 ---
@@ -43,10 +43,19 @@ region_ann <- sapply(ann, function(x){
 region_ann <- unname(region_ann)
 table(region_ann)
 
+#Calculating mutations per megabase in coding region
+coding_variants = 0
+coding_variants <- ifelse(region_ann %in% c("frameshift_variant", "missense_variant", "missense_variant&splice_region_variant"),
+       TRUE,
+       FALSE)
+coding_variants <- table(coding_variants)
+mutations_megabase_coding <- ceiling(as.vector(coding_variants[2])/3200)
 ```
 
 * The _total number of mutations_ in the vcf are **`r vcf_number_rows`** and 
-* Number of mutations per megabase_ are **`r mutations_megabase`**.
+* Number of mutations per megabase are **`r mutations_megabase`**.
+* The _total number of mutations in the coding region_ are **`r as.vector(coding_variants[2])`**
+* Number of mutations per megabase in the coding region are **`r mutations_megabase_coding`**
 
 
 
