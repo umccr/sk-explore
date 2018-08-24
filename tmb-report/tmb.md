@@ -114,13 +114,13 @@ coding_variants <- ifelse(region_ann %in% c("frameshift_variant", "missense_vari
        TRUE,
        FALSE)
 coding_variants <- table(coding_variants)
-mutations_megabase_coding <- ceiling(as.vector(coding_variants[2])/3200)
+mutations_megabase_coding <- ceiling(as.vector(coding_variants[2])/40) #40MB is the estimated size of coding region in human genome - as used by PCGR as well. We can use 36MB if we go with exact calculations, as only 1.2% of the total genome is considered coding (total genome * percent protein coding = 3,000,000,000 * 0.012 = 36,000,000 ~36MB)
 ```
 
 * The _total number of mutations_ in the vcf are **20361** and 
 * Number of mutations per megabase are **7**.
 * The _total number of mutations in the coding region_ are **115**
-* Number of mutations per megabase in the coding region are **1**
+* Number of mutations per megabase in the coding region are **3**
 
 
 
