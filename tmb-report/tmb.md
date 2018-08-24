@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Thu 2018-Aug-23"
+date: "Fri 2018-Aug-24"
 output:
   html_document:
     keep_md: true
@@ -12,9 +12,9 @@ editor_options:
 
 
 Tumour mutational burden (TMB) "measures the quantity of mutations found in a tumor" (https://www.focr.org/tmb). Also, it is defined as "a quantitative measure of the total number of mutations per coding area of a tumor genome." (https://www.genengnews.com/gen-exclusives/the-promise-of-tumor-mutational-burden-for-cancer-immunotherapy/77900833).
-This type of biomarker is currently under study to evaluate whether it may help predict the likelihood a patient's response to immunotherapy in a range of advanced cancers.
+This type of biomarker is currently under study to evaluate whether it may help predict the likelihood a patient's response to immunotherapy in a range of advanced cancers. 
 
-As multiple definitions indicate, currently, there is a lack of standardization for TMB calculation and reporting. However, it is imperative to use this information to further inform clinically-meaningful results, which will support informed decision-making for patients. 
+Tumors that have higher levels of TMB are believed to express more neoantigens – a type of cancer-specific antigen – that may allow for a more robust immune response and therefore a more durable response to immunotherapy.
 
 Required packages
 
