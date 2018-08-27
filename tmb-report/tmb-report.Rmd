@@ -21,10 +21,7 @@ Tumors that have higher levels of TMB are believed to express more neoantigens â
 Required packages
 
 ```{r, message=FALSE}
-library(vcfR, warn.conflicts=F, quietly=T)
-library(dplyr, warn.conflicts=F, quietly=T)
-library(ggplot2, warn.conflicts=F, quietly=T)
-library(reticulate, warn.conflicts=F, quietly=T)
+library(vcfR)
 ```
 
 ```{r}
