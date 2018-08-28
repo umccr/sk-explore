@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Fri 2018-Aug-24"
+date: "Tue 2018-Aug-28"
 output:
   html_document:
     keep_md: true
@@ -20,11 +20,7 @@ Required packages
 
 
 ```r
-library(vcfR, warn.conflicts=F, quietly=T)
-library(dplyr, warn.conflicts=F, quietly=T)
-## Warning: package 'dplyr' was built under R version 3.5.1
-library(ggplot2, warn.conflicts=F, quietly=T)
-library(reticulate, warn.conflicts=F, quietly=T)
+library(vcfR)
 ```
 
 
@@ -110,9 +106,7 @@ table(region_ann)
 
 #Calculating mutations per megabase in coding region
 coding_variants = 0
-coding_variants <- ifelse(region_ann %in% c("frameshift_variant", "missense_variant", "missense_variant&splice_region_variant"),
-       TRUE,
-       FALSE)
+coding_variants <- region_ann %in% c("frameshift_variant", "missense_variant", "missense_variant&splice_region_variant")
 coding_variants <- table(coding_variants)
 mutations_megabase_coding <- ceiling(as.vector(coding_variants[2])/40) #40MB is the estimated size of coding region in human genome - as used by PCGR as well. We can use 36MB if we go with exact calculations, as only 1.2% of the total genome is considered coding (total genome * percent protein coding = 3,000,000,000 * 0.012 = 36,000,000 ~36MB)
 ```
