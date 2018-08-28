@@ -26,24 +26,7 @@ library(knitr)
 
 
 ```r
-vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") 
-## Scanning file to determine attributes.
-## File attributes:
-##   meta lines: 343
-##   header_line: 344
-##   variant count: 20361
-##   column count: 11
-## Meta line 343 read in.
-## All meta lines processed.
-## gt matrix initialized.
-## Character matrix gt created.
-##   Character matrix gt rows: 20361
-##   Character matrix gt cols: 11
-##   skip: 0
-##   nrows: 20361
-##   row_num: 0
-## Processed variant 1000Processed variant 2000Processed variant 3000Processed variant 4000Processed variant 5000Processed variant 6000Processed variant 7000Processed variant 8000Processed variant 9000Processed variant 10000Processed variant 11000Processed variant 12000Processed variant 13000Processed variant 14000Processed variant 15000Processed variant 16000Processed variant 17000Processed variant 18000Processed variant 19000Processed variant 20000Processed variant: 20361
-## All variants processed
+vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf", verbose =  FALSE) 
 
 #Calculating mutations per megabase
 fix <- getFIX(vcf)

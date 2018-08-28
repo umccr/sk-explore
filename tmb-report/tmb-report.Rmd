@@ -26,7 +26,7 @@ library(knitr)
 ```
 
 ```{r}
-vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf") 
+vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf", verbose =  FALSE) 
 
 #Calculating mutations per megabase
 fix <- getFIX(vcf)
