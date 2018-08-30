@@ -42,7 +42,7 @@ variant_annotation <- unname(region_ann)
 
 #Creating a nice table output for annotations summary
 region_ann_df <- data.frame(table(variant_annotation))
-kable(region_ann_df, caption = "Table summarizing all annotations in the vcf and the total number of variants suppporting these annotations")
+kable(region_ann_df, caption = "Table summarizing all annotations in the vcf and the total number of variants suppporting these annotations", format = "markdown")
 
 #Calculating mutations per megabase in coding region
 coding_variants = 0
