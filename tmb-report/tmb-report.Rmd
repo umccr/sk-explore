@@ -26,12 +26,12 @@ library(knitr)
 ```
 
 ```{r}
-vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf", verbose =  FALSE) 
+vcf <-  read.vcfR("~/Documents/UMCCR/data/vcfs/2016_249_17_MH_P030_2__CCR180059_VPT-M030-somatic-ensemble-pon_hardfiltered.vcf.gz", verbose =  FALSE) 
 
 #Calculating mutations per megabase
 fix <- getFIX(vcf)
 vcf_number_rows <- nrow(fix)
-mutations_megabase <- ceiling(vcf_number_rows/3200)
+mutations_megabase <- round(vcf_number_rows/3200)
 
 #Summarizing annotations for variants in the vcf
 ann <- vcfR::extract.info(vcf, "ANN")
@@ -48,7 +48,7 @@ kable(region_ann_df, caption = "Table summarizing all annotations in the vcf and
 coding_variants = 0
 coding_variants <- region_ann %in% c("frameshift_variant", "missense_variant", "missense_variant&splice_region_variant")
 coding_variants <- table(coding_variants)
-mutations_megabase_coding <- ceiling(as.vector(coding_variants[2])/40) 
+mutations_megabase_coding <- round(as.vector(coding_variants[2])/40) 
 #40MB is the estimated size of coding region in human genome - as used by PCGR as well. 
 #We can use 36MB if we go with exact calculations, as only 1.2% of the total genome is considered coding. 
 #total genome * percent protein coding = 3,000,000,000 * 0.012 = 36,000,000 ~36MB

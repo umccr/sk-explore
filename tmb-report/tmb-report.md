@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Tue 2018-Aug-28"
+date: "Thu 2018-Aug-30"
 output:
   html_document:
     keep_md: true
@@ -26,12 +26,12 @@ library(knitr)
 
 
 ```r
-vcf <-  read.vcfR("~/Documents/UMCCR/data/ensemble-pon-pass.vcf", verbose =  FALSE) 
+vcf <-  read.vcfR("~/Documents/UMCCR/data/vcfs/2016_249_17_MH_P030_2__CCR180059_VPT-M030-somatic-ensemble-pon_hardfiltered.vcf.gz", verbose =  FALSE) 
 
 #Calculating mutations per megabase
 fix <- getFIX(vcf)
 vcf_number_rows <- nrow(fix)
-mutations_megabase <- ceiling(vcf_number_rows/3200)
+mutations_megabase <- round(vcf_number_rows/3200)
 
 #Summarizing annotations for variants in the vcf
 ann <- vcfR::extract.info(vcf, "ANN")
@@ -49,31 +49,33 @@ kable(region_ann_df, caption = "Table summarizing all annotations in the vcf and
 
 Table: Table summarizing all annotations in the vcf and the total number of variants suppporting these annotations
 
-variant_annotation                                                               Freq
------------------------------------------------------------------------------  ------
-3_prime_UTR_variant                                                               104
-5_prime_UTR_premature_start_codon_gain_variant                                      8
-5_prime_UTR_variant                                                                36
-conservative_inframe_deletion                                                       1
-downstream_gene_variant                                                          1311
-frameshift_variant                                                                  9
-frameshift_variant&splice_donor_variant&splice_region_variant&intron_variant        1
-initiator_codon_variant                                                             1
-intergenic_region                                                               10332
-intron_variant                                                                   6642
-missense_variant                                                                  101
-missense_variant&splice_region_variant                                              5
-non_coding_transcript_exon_variant                                                 53
-splice_acceptor_variant&intron_variant                                              2
-splice_donor_variant&intron_variant                                                 4
-splice_region_variant                                                               1
-splice_region_variant&intron_variant                                               17
-splice_region_variant&synonymous_variant                                            1
-start_lost                                                                          1
-stop_gained                                                                         4
-stop_lost                                                                           1
-synonymous_variant                                                                 47
-upstream_gene_variant                                                            1679
+variant_annotation                                          Freq
+---------------------------------------------------------  -----
+3_prime_UTR_variant                                           82
+5_prime_UTR_premature_start_codon_gain_variant                 5
+5_prime_UTR_variant                                           24
+conservative_inframe_insertion                                 1
+disruptive_inframe_deletion                                    1
+downstream_gene_variant                                      988
+frameshift_variant                                             8
+intergenic_region                                           5981
+intragenic_variant                                             3
+intron_variant                                              4349
+missense_variant                                              80
+missense_variant&splice_region_variant                         2
+non_coding_transcript_exon_variant                            43
+sequence_feature                                              81
+splice_acceptor_variant&intron_variant                         1
+splice_donor_variant&intron_variant                            2
+splice_region_variant                                          1
+splice_region_variant&intron_variant                          13
+splice_region_variant&non_coding_transcript_exon_variant       1
+splice_region_variant&synonymous_variant                       1
+stop_gained                                                    8
+structural_interaction_variant                                 1
+synonymous_variant                                            25
+TF_binding_site_variant                                        8
+upstream_gene_variant                                       1292
 
 ```r
 
@@ -81,16 +83,16 @@ upstream_gene_variant                                                           
 coding_variants = 0
 coding_variants <- region_ann %in% c("frameshift_variant", "missense_variant", "missense_variant&splice_region_variant")
 coding_variants <- table(coding_variants)
-mutations_megabase_coding <- ceiling(as.vector(coding_variants[2])/40) 
+mutations_megabase_coding <- round(as.vector(coding_variants[2])/40) 
 #40MB is the estimated size of coding region in human genome - as used by PCGR as well. 
 #We can use 36MB if we go with exact calculations, as only 1.2% of the total genome is considered coding. 
 #total genome * percent protein coding = 3,000,000,000 * 0.012 = 36,000,000 ~36MB
 ```
 
-* The _total number of mutations_ in the vcf are **20361** and 
-* Number of mutations per megabase are **7**.
-* The _total number of mutations in the coding region_ are **115**
-* Number of mutations per megabase in the coding region are **3**
+* The _total number of mutations_ in the vcf are **13001** and 
+* Number of mutations per megabase are **4**.
+* The _total number of mutations in the coding region_ are **90**
+* Number of mutations per megabase in the coding region are **2**
 
 
 
