@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Thu 2018-Aug-30"
+date: "Mon 2018-Oct-08"
 output:
   html_document:
     keep_md: true
@@ -22,11 +22,12 @@ Required packages
 ```r
 library(vcfR)
 library(knitr)
+library(kableExtra)
 ```
 
 
 ```r
-vcf <-  read.vcfR("~/Documents/UMCCR/data/vcfs/MH17T001P004-somatic-ensemble-pon_hardfiltered.vcf.gz", verbose =  FALSE) 
+vcf <-  read.vcfR("~/Documents/UMCCR/data/vcfs/ensemble-with_chr_prefix.vcf", verbose =  FALSE) 
 
 #Calculating mutations per megabase
 fix <- getFIX(vcf)
@@ -47,20 +48,14 @@ kable(region_ann_df, caption = "Table summarizing all annotations in the vcf and
 
 
 
-|variant_annotation                                       | Freq|
-|:--------------------------------------------------------|----:|
-|3_prime_UTR_variant                                      |    7|
-|5_prime_UTR_variant                                      |    1|
-|downstream_gene_variant                                  |   67|
-|frameshift_variant                                       |    1|
-|intergenic_region                                        |  222|
-|intron_variant                                           |  203|
-|missense_variant                                         |    2|
-|sequence_feature                                         |    3|
-|splice_region_variant&intron_variant                     |    3|
-|splice_region_variant&non_coding_transcript_exon_variant |    1|
-|TF_binding_site_variant                                  |    1|
-|upstream_gene_variant                                    |  107|
+|variant_annotation      | Freq|
+|:-----------------------|----:|
+|3_prime_UTR_variant     |    2|
+|downstream_gene_variant |    3|
+|intergenic_region       |   11|
+|intron_variant          |   11|
+|missense_variant        |    4|
+|upstream_gene_variant   |    7|
 
 ```r
 
@@ -72,12 +67,47 @@ mutations_megabase_coding <- round(as.vector(coding_variants[2])/40, digits = 2)
 #40MB is the estimated size of coding region in human genome - as used by PCGR as well. 
 #We can use 36MB if we go with exact calculations, as only 1.2% of the total genome is considered coding. 
 #total genome * percent protein coding = 3,000,000,000 * 0.012 = 36,000,000 ~36MB
+
+#Displaying results in table
+region <- c("Wholegenome", "Coding")
+total_mutations <- c(vcf_number_rows, as.vector(coding_variants[2]))
+mutations_mb <- c(mutations_megabase, mutations_megabase_coding)
+
+result_display <- data.frame(region, total_mutations, mutations_mb) 
+kable(result_display) %>%
+  kable_styling(font_size = 12, "striped", "bordered", full_width = F)
 ```
 
-* The _total number of mutations_ in the vcf are **618** and 
-* Number of mutations per megabase are **0.19**.
-* The _total number of mutations in the coding region_ are **3**
-* Number of mutations per megabase in the coding region are **0.08**
+<table class="table table-striped" style="font-size: 12px; width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> region </th>
+   <th style="text-align:right;"> total_mutations </th>
+   <th style="text-align:right;"> mutations_mb </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Wholegenome </td>
+   <td style="text-align:right;"> 38 </td>
+   <td style="text-align:right;"> 0.01 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Coding </td>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:right;"> 0.10 </td>
+  </tr>
+</tbody>
+</table>
+
+* The _total number of mutations_ in the vcf are **38** and 
+* Number of mutations per megabase are **0.01**.
+* The _total number of mutations in the coding region_ are **4**
+* Number of mutations per megabase in the coding region are **0.1**
+
+
+
+
 
 
 
