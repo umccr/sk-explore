@@ -38,7 +38,7 @@ vcf <- system(paste(bcftools, vcf_file), intern = TRUE) %>%
 
 #Calculating mutations per megabase
 #fix <- getFIX(vcf)
-vcf_number_rows <- nrow(fix)
+vcf_number_rows <- nrow(vcf)
 mutations_megabase <- round(vcf_number_rows/3200, digits = 2)
 
 #Summarizing annotations for variants in the vcf
