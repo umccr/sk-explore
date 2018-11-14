@@ -37,12 +37,13 @@ vcf <- system(paste(bcftools, vcf_file), intern = TRUE) %>%
                   sep = "\t", convert = TRUE)
 
 #Calculating mutations per megabase
-fix <- getFIX(vcf)
+#fix <- getFIX(vcf)
 vcf_number_rows <- nrow(fix)
 mutations_megabase <- round(vcf_number_rows/3200, digits = 2)
 
 #Summarizing annotations for variants in the vcf
-ann <- vcfR::extract.info(vcf, "ANN")
+#ann <- vcfR::extract.info(vcf, "ANN")
+ann <- vcf$ANN
 region_ann <- sapply(ann, function(x){
   y <- strsplit(x, "\\|")[[1]][2]
 })
