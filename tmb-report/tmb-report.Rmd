@@ -29,12 +29,17 @@ library(kableExtra)
 ```{r}
 #vcf <-  read.vcfR("~/Documents/UMCCR/data/vcfs/ensemble-with_chr_prefix.vcf", verbose =  FALSE) 
 vcf_file <- "~/Documents/UMCCR/data/vcfs/ensemble-pon-pass.vcf"
-bcftools <- "bcftools query -f '%CHROM\t%POS\t%INFO/ANN\n'"
-vcf <- system(paste(bcftools, vcf_file), intern = TRUE) %>%
-  tibble::tibble(all_cols = .) %>%
-  tidyr::separate(col = .data$all_cols,
-                  into = c("CHROM", "POS", "ANN"),
-                  sep = "\t", convert = TRUE)
+#bcftools <- "bcftools query -f '%CHROM\t%POS\t%INFO/ANN\n'"
+
+#lets just read the annotaions from vcf file
+bcftools <- "bcftools query -f '%INFO/ANN\n'"
+
+#vcf <- system(paste(bcftools, vcf_file), intern = TRUE) %>%
+  #tibble::tibble(all_cols = .) %>%
+  #tidyr::separate(col = .data$all_cols,
+                  #into = c("CHROM", "POS", "ANN"),
+                  #sep = "\t", convert = TRUE)
+
 
 #Calculating mutations per megabase
 #fix <- getFIX(vcf)
