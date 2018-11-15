@@ -1,7 +1,7 @@
 ---
 title: "Tumour Mutational Burden (TMB)"
 author: "Sehrish Kanwal"
-date: "Wed 2018-Nov-14"
+date: "Thu 2018-Nov-15"
 output:
   html_document:
     keep_md: true
@@ -28,23 +28,31 @@ library(kableExtra)
 
 ```r
 #vcf <-  read.vcfR("~/Documents/UMCCR/data/vcfs/ensemble-with_chr_prefix.vcf", verbose =  FALSE) 
-vcf_file <- "~/Documents/UMCCR/data/vcfs/ensemble-pon-pass.vcf"
-bcftools <- "bcftools query -f '%CHROM\t%POS\t%INFO/ANN\n'"
-vcf <- system(paste(bcftools, vcf_file), intern = TRUE) %>%
-  tibble::tibble(all_cols = .) %>%
-  tidyr::separate(col = .data$all_cols,
-                  into = c("CHROM", "POS", "ANN"),
-                  sep = "\t", convert = TRUE)
+vcf <- "~/Documents/UMCCR/data/vcfs/ensemble-pon-pass.vcf"
+#bcftools <- "bcftools query -f '%CHROM\t%POS\t%INFO/ANN\n'"
+
+#lets just read the annotaions from vcf file
+bcftools <- "bcftools query -f '%INFO/ANN\n'"
+
+#vcf <- system(paste(bcftools, vcf_file), intern = TRUE) %>%
+  #tibble::tibble(all_cols = .) %>%
+  #tidyr::separate(col = .data$all_cols,
+                  #into = c("CHROM", "POS", "ANN"),
+                  #sep = "\t", convert = TRUE)
+
+#run bcftools command on the vcf and convert output to dataframe
+vcf_ann <- system(paste(bcftools, vcf), intern = TRUE) %>%
+  tibble::tibble(ANN = .)
 
 #Calculating mutations per megabase
 #fix <- getFIX(vcf)
-vcf_number_rows <- nrow(vcf)
+vcf_number_rows <- nrow(vcf_ann)
 mutations_megabase <- round(vcf_number_rows/3200, digits = 2)
 
 #Summarizing annotations for variants in the vcf
 #ann <- vcfR::extract.info(vcf, "ANN")
-ann <- vcf$ANN
-region_ann <- sapply(ann, function(x){
+#ann <- vcf$ANN
+region_ann <- sapply(vcf_ann$ANN, function(x){
   y <- strsplit(x, "\\|")[[1]][2]
 })
 variant_annotation <- unname(region_ann)
@@ -225,15 +233,13 @@ devtools::session_info()
 ##  collate  en_AU.UTF-8                 
 ##  ctype    en_AU.UTF-8                 
 ##  tz       Australia/Melbourne         
-##  date     2018-11-14                  
+##  date     2018-11-15                  
 ## 
 ## ─ Packages ──────────────────────────────────────────────────────────────
 ##  package     * version date       lib source        
 ##  assertthat    0.2.0   2017-04-11 [1] CRAN (R 3.5.0)
 ##  backports     1.1.2   2017-12-13 [1] CRAN (R 3.5.0)
 ##  base64enc     0.1-3   2015-07-28 [1] CRAN (R 3.5.0)
-##  bindr         0.1.1   2018-03-13 [1] CRAN (R 3.5.0)
-##  bindrcpp      0.2.2   2018-03-29 [1] CRAN (R 3.5.0)
 ##  callr         3.0.0   2018-08-24 [1] CRAN (R 3.5.0)
 ##  cli           1.0.1   2018-09-25 [1] CRAN (R 3.5.0)
 ##  colorspace    1.3-2   2016-12-14 [1] CRAN (R 3.5.0)
@@ -241,7 +247,6 @@ devtools::session_info()
 ##  desc          1.2.0   2018-05-01 [1] CRAN (R 3.5.0)
 ##  devtools      2.0.1   2018-10-26 [1] CRAN (R 3.5.0)
 ##  digest        0.6.18  2018-10-10 [1] CRAN (R 3.5.0)
-##  dplyr         0.7.8   2018-11-10 [1] CRAN (R 3.5.0)
 ##  evaluate      0.12    2018-10-09 [1] CRAN (R 3.5.0)
 ##  fs            1.2.6   2018-08-23 [1] CRAN (R 3.5.0)
 ##  glue          1.3.0   2018-07-17 [1] CRAN (R 3.5.0)
@@ -261,7 +266,6 @@ devtools::session_info()
 ##  prettyunits   1.0.2   2015-07-13 [1] CRAN (R 3.5.0)
 ##  processx      3.2.0   2018-08-16 [1] CRAN (R 3.5.0)
 ##  ps            1.2.1   2018-11-06 [1] CRAN (R 3.5.0)
-##  purrr         0.2.5   2018-05-29 [1] CRAN (R 3.5.0)
 ##  R6            2.3.0   2018-10-04 [1] CRAN (R 3.5.0)
 ##  Rcpp          1.0.0   2018-11-07 [1] CRAN (R 3.5.0)
 ##  readr         1.1.1   2017-05-16 [1] CRAN (R 3.5.0)
@@ -277,8 +281,6 @@ devtools::session_info()
 ##  stringr       1.3.1   2018-05-10 [1] CRAN (R 3.5.0)
 ##  testthat      2.0.1   2018-10-13 [1] CRAN (R 3.5.0)
 ##  tibble        1.4.2   2018-01-22 [1] CRAN (R 3.5.0)
-##  tidyr         0.8.2   2018-10-28 [1] CRAN (R 3.5.0)
-##  tidyselect    0.2.5   2018-10-11 [1] CRAN (R 3.5.0)
 ##  usethis       1.4.0   2018-08-14 [1] CRAN (R 3.5.0)
 ##  viridisLite   0.3.0   2018-02-01 [1] CRAN (R 3.5.0)
 ##  withr         2.1.2   2018-03-15 [1] CRAN (R 3.5.0)

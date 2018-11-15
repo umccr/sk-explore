@@ -28,7 +28,7 @@ library(kableExtra)
 
 ```{r}
 #vcf <-  read.vcfR("~/Documents/UMCCR/data/vcfs/ensemble-with_chr_prefix.vcf", verbose =  FALSE) 
-vcf_file <- "~/Documents/UMCCR/data/vcfs/ensemble-pon-pass.vcf"
+vcf <- "~/Documents/UMCCR/data/vcfs/ensemble-pon-pass.vcf"
 #bcftools <- "bcftools query -f '%CHROM\t%POS\t%INFO/ANN\n'"
 
 #lets just read the annotaions from vcf file
@@ -40,16 +40,19 @@ bcftools <- "bcftools query -f '%INFO/ANN\n'"
                   #into = c("CHROM", "POS", "ANN"),
                   #sep = "\t", convert = TRUE)
 
+#run bcftools command on the vcf and convert output to dataframe
+vcf_ann <- system(paste(bcftools, vcf), intern = TRUE) %>%
+  tibble::tibble(ANN = .)
 
 #Calculating mutations per megabase
 #fix <- getFIX(vcf)
-vcf_number_rows <- nrow(vcf)
+vcf_number_rows <- nrow(vcf_ann)
 mutations_megabase <- round(vcf_number_rows/3200, digits = 2)
 
 #Summarizing annotations for variants in the vcf
 #ann <- vcfR::extract.info(vcf, "ANN")
-ann <- vcf$ANN
-region_ann <- sapply(ann, function(x){
+#ann <- vcf$ANN
+region_ann <- sapply(vcf_ann$ANN, function(x){
   y <- strsplit(x, "\\|")[[1]][2]
 })
 variant_annotation <- unname(region_ann)
