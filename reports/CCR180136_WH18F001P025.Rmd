@@ -52,6 +52,10 @@ The location of run directory on spartan is `/data/cephfs/punim0010/projects/Kan
 
 **Mosdepth output**
 
+Currently focussing on `regions.bed` file that contains information about coverage of hotspot regions and `quantized.bed` file that contains information about callability windows.
+
+1. Hotspot regions
+
 ```{r, message=FALSE}
 mosdepth <- "/Users/kanwals/Documents/UMCCR/data/mosdepth"
 mosdepth_decentcell <- file.path(mosdepth, "CCR180136_WH18F001P025")
@@ -60,21 +64,51 @@ lf(mosdepth_decentcell)
 
 #read regions.bed file - first grep the appropriate bed file from folder and then create a path for that name
 regions_bed_name <- list.files(mosdepth_decentcell)[grep(".regions.bed$",list.files(mosdepth_decentcell))]
-regions_bed_name <- file.path(mosdepth_decentcell, regions_bed_name)
-regions_bed <- as.data.frame(read.table(regions_bed_name, header = FALSE, sep = "\t", stringsAsFactors = FALSE))
+regions_bed_path <- file.path(mosdepth_decentcell, regions_bed_name)
+regions_bed <- as.data.frame(read.table(regions_bed_path, header = FALSE, sep = "\t", stringsAsFactors = FALSE))
+
 #read hotspots file - to include the column that shows the change from ref. nucleaotide in the regions.bed file
 hotspots <- as.data.frame(read.table("~/Documents/UMCCR/data/mosdepth/hotspot.edited.bed", header = FALSE, sep = "\t", stringsAsFactors = FALSE))
+
 #merge region_bed file with hotspots column that has info about the possible nucleotide change. Also avoid adding an additional Row.names column by setting it to NULL
 regions_bed_hotspot <- transform(merge(regions_bed, hotspots$V5, by = "row.names", sort = FALSE), Row.names=NULL) %>%
-  select(V1, V2, V3, V4, y, V5)
-#add column names  
-colnames(regions_bed_hotspot) <- c("chrom","chromStart","chromEnd", "Ref", "Alt", "Cov")
+  select(V1, V2, V4, y, V5)
+#assign column names  
+colnames(regions_bed_hotspot) <- c("Chrom","Pos", "Ref", "Alt", "Cov")
+
 #present output in a table format
 regions_bed_hotspot %>%
   kable() %>%
   kable_styling(bootstrap_options = "striped", full_width = F) %>%
   scroll_box(height = "400px")
 ```
+
+2. Callability levels
+
+```{r, message=FALSE}
+#read quatized.bed file - first grep the appropriate bed file from folder and then create a path for that name
+quantized_bed_name <- list.files(mosdepth_decentcell)[grep(".quantized.bed$",list.files(mosdepth_decentcell))]
+quantized_bed_path <- file.path(mosdepth_decentcell, quantized_bed_name)
+quantized_bed <- as.data.frame(read.table(quantized_bed_path, header = FALSE, sep = "\t", stringsAsFactors = FALSE))
+#assign column names
+colnames(quantized_bed) <- c("Chr", "Start", "End", "Callability")
+
+#present output in a table format - not a good idea as takes forever to render becuase of the number of observations
+#quantized_bed %>%
+#  kable() %>%
+#  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+#  scroll_box(height = "400px")
+
+#Extract no coverage regions from quantized.bed file
+no_coverage <- quantized_bed[quantized_bed$Callability == "0:10", ]
+#Extract low coverage regions from quantized.bed file
+low_coverage <- quantized_bed[quantized_bed$Callability == "10:50", ]
+#Extract high coverage regions from quantized.bed file
+high_coverage <- quantized_bed[quantized_bed$Callability == "500:inf", ]
+```
+
+
+
 
 
 
