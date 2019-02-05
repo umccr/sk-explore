@@ -3,7 +3,7 @@ title: "Coverage assessment using mosdepth"
 author: "Sehrish Kanwal"
 date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
 output:
-  html_document:
+  html_document: 
     keep_md: true
 editor_options:
   chunk_output_type: console
@@ -16,8 +16,8 @@ knitr::opts_chunk$set(collapse = TRUE) # global setup
 **Required packages**
 
 ```{r, message=FALSE}
-library(vcfR)
 library(knitr)
+library(dplyr)
 library(kableExtra)
 ```
 
@@ -69,6 +69,11 @@ regions_bed_hotspot <- transform(merge(regions_bed, hotspots$V5, by = "row.names
   select(V1, V2, V3, V4, y, V5)
 #add column names  
 colnames(regions_bed_hotspot) <- c("chrom","chromStart","chromEnd", "Ref", "Alt", "Cov")
+#present output in a table format
+regions_bed_hotspot %>%
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  scroll_box(height = "400px")
 ```
 
 
