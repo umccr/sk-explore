@@ -74,10 +74,24 @@ hotspots <- as.data.frame(read.table("~/Documents/UMCCR/data/mosdepth/hotspot.ed
 regions_bed_hotspot <- transform(merge(regions_bed, hotspots$V5, by = "row.names", sort = FALSE), Row.names=NULL) %>%
   select(V1, V2, V4, y, V5)
 #assign column names  
-colnames(regions_bed_hotspot) <- c("Chrom","Pos", "Ref", "Alt", "Cov")
+colnames(regions_bed_hotspot) <- c("chrom","pos", "ref", "alt", "cov")
+
+#add callability column to regions.bed file - based on the coverage value
+call = vector()
+call <- sapply(regions_bed_hotspot$cov, function(x){
+  if (x == 0)
+  {call = c(call, "0")} 
+  else if (x >= 10 && x <= 50) 
+  {call = c(call, "10:50")}
+  else if (x >= 50 && x <= 500) 
+  {call = c(call, "50:500")}
+  else if (x >= 500) 
+  {call = c(call, "500:inf")}
+})
+regions_bed_new <- dplyr::mutate(regions_bed_hotspot, callability = call)
 
 #present output in a table format
-regions_bed_hotspot %>%
+regions_bed_new %>%
   kable() %>%
   kable_styling(bootstrap_options = "striped", full_width = F) %>%
   scroll_box(height = "400px")
