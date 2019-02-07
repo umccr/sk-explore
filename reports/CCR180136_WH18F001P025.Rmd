@@ -111,10 +111,9 @@ call <- sapply(regions_bed_hotspot$cov, function(x){
   {call = c(call, "500:inf")}
 })
 regions_bed_new <- dplyr::mutate(regions_bed_hotspot, callability = call)
-head(regions_bed_new)
 
-#present output in a table format
-regions_bed_new %>%
+#present output in a table format - only showing first few entries in the output because the .md file size exceeds github file limit 
+head(regions_bed_new) %>%
   kable(caption = "Coverage value and the corresponding callability level for hotspot regions") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE) %>%
   scroll_box(height = "400px")
@@ -129,8 +128,8 @@ for (row in 1:nrow(regions_bed_new)){
 }
 
 #present output in a table format
-low_coverage_hotspot %>%
-  kable(caption = "Coverage for zero and low callability hotspot regions") %>%
+head(low_coverage_hotspot, 10) %>%
+  kable(caption = "Coverage for zero and low callability hotspot regions - only displaying the first few values") %>%
   kable_styling(bootstrap_options = "striped", full_width = F) %>%
   scroll_box(height = "400px")
 ```
