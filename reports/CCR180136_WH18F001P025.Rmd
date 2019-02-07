@@ -127,6 +127,9 @@ for (row in 1:nrow(regions_bed_new)){
   }
 }
 
+#Number of hotspots with zero/low coverage
+nrow(low_coverage_hotspot)
+
 #present output in a table format
 head(low_coverage_hotspot, 10) %>%
   kable(caption = "Coverage for zero and low callability hotspot regions - only displaying the first few values") %>%
@@ -151,23 +154,26 @@ nrow(quantized_bed)
 #Extract no coverage regions from quantized.bed file
 no_coverage <- quantized_bed[quantized_bed$Callability == "0:10", ]
 nrow(no_coverage)
-head(no_coverage) %>%
-  kable(caption = "No coverage regions - only showing first few values") %>%
-  kable_styling(bootstrap_options = "striped", full_width = F)
+if(nrow(no_coverage) != 0)
+  head(no_coverage) %>%
+    kable(caption = "No coverage regions - only showing first few values") %>%
+    kable_styling(bootstrap_options = "striped", full_width = F)
   
 #Extract low coverage regions from quantized.bed file
 low_coverage <- quantized_bed[quantized_bed$Callability == "10:50", ]
 nrow(low_coverage)
-head(low_coverage) %>%
-  kable(caption = "Low coverage regions- only showing first few values") %>%
-  kable_styling(bootstrap_options = "striped", full_width = F)
+if(nrow(low_coverage) != 0)
+  head(low_coverage) %>%
+    kable(caption = "Low coverage regions- only showing first few values") %>%
+    kable_styling(bootstrap_options = "striped", full_width = F)
 
 #Extract high coverage regions from quantized.bed file
 high_coverage <- quantized_bed[quantized_bed$Callability == "500:inf", ]
 nrow(high_coverage)
-head(high_coverage) %>%
-  kable(caption = "High coverage regions- only showing first few values") %>%
-  kable_styling(bootstrap_options = "striped", full_width = F)
+if(nrow(high_coverage) != 0)
+  head(high_coverage) %>%
+    kable(caption = "High coverage regions- only showing first few values") %>%
+    kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 
 
