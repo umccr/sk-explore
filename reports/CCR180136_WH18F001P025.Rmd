@@ -185,5 +185,7 @@ if(nrow(high_coverage) != 0)
 
 - Need to set cutoffs for each sample based on purity and qc information (instead of hardcoding) 
 
+- Change cutoff value to `0:1:15:500:`
+
 
 
