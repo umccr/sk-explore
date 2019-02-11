@@ -9,6 +9,25 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r}
+NOW <- Sys.time()
+
+#Time chunks during knitting
+knitr::knit_hooks$set(timeit = function(before) {
+  if(before) {
+    print(paste("Start:", Sys.time()))
+    NOW <- Sys.time()
+  } else {
+    print(paste("Stop:", Sys.time()))
+    print(Sys.time() - NOW)
+  }
+})
+
+knitr::opts_chunk$set(
+  timeit = TRUE
+)
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE) # global setup
 ```
