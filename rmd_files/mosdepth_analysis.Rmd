@@ -61,16 +61,18 @@ mosdepth_output <- file.path(mosdepth, "CCR180136_WH18F001P025_fakeY_changedthre
 lf(mosdepth_output)
 
 #read regions.bed file - first grep the appropriate bed file from mosdepth sample output folder and then create a path for that name
-regions_bed_name <- list.files(mosdepth_output)[grep(".regions.bed.gz$",list.files(mosdepth_output))]
+regions_bed_name <- list.files(mosdepth_output)[grep(".regions.bed$",list.files(mosdepth_output))]
 
 #prepare file path for the regions.bed file
 regions_bed_path <- file.path(mosdepth_output, regions_bed_name)
-regions_bed <- readr::read_tsv(regions_bed_path, col_types = readr::cols())
+#regions_bed <- readr::read_table(regions_bed_path)
+regions_bed <- read.table(regions_bed_path, header = FALSE, sep = "\t", stringsAsFactors = FALSE)
 head(regions_bed)
 colnames(regions_bed) <- c("chr", "start", "end", "ref", "coverage")
 
 #read hotspots file - to include the column that shows the change from ref. nucleotide in the regions.bed file
-hotspots <- readr::read_tsv("~/Documents/UMCCR/data/mosdepth/hotspots/hotspot_fake.bed", col_names = FALSE)
+#hotspots <- readr::read_tsv("~/Documents/UMCCR/data/mosdepth/hotspots/hotspot_fake.bed", col_names = FALSE)
+hotspots <- read.table("~/Documents/UMCCR/data/mosdepth/hotspots/hotspot_fake.bed", header = FALSE, sep = "\t", stringsAsFactors = FALSE)
 colnames(hotspots) <- c("chr", "start", "end", "ref", "alt")
 
 #merge region_bed file with hotspots column that has info about the possible nucleotide change.Also avoid adding an additional Row.names column by
