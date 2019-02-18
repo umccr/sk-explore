@@ -160,18 +160,18 @@ head(low_coverage_hotspot, 10) %>%
 
 Here, analysing the quantized output produced by mosdepth to see if it adds any extra information.
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 #read quatized.bed file - first grep the appropriate bed file from folder and then create a path for that name
-quantized_bed_name <- list.files(mosdepth_decentcell)[grep(".quantized.bed$",list.files(mosdepth_decentcell))]
-quantized_bed_path <- file.path(mosdepth_decentcell, quantized_bed_name)
-quantized_bed <- as.data.frame(read.table(quantized_bed_path, header = FALSE, sep = "\t", stringsAsFactors = FALSE))
+quantized_bed_name <- list.files(mosdepth_output)[grep(".quantized.bed$",list.files(mosdepth_output))]
+quantized_bed_path <- file.path(mosdepth_output, quantized_bed_name)
+quantized_bed <- readr::read_tsv(quantized_bed_path, col_names = FALSE)
 #assign column names
 colnames(quantized_bed) <- c("Chr", "Start", "End", "Callability")
 #number of values
 nrow(quantized_bed)
 
 #Extract no coverage regions from quantized.bed file
-no_coverage <- quantized_bed[quantized_bed$Callability == "0:10", ]
+no_coverage <- quantized_bed %>% dplyr::filter(Callability == "0")
 nrow(no_coverage)
 if(nrow(no_coverage) != 0)
   head(no_coverage) %>%
@@ -179,7 +179,7 @@ if(nrow(no_coverage) != 0)
     kable_styling(bootstrap_options = "striped", full_width = F)
   
 #Extract low coverage regions from quantized.bed file
-low_coverage <- quantized_bed[quantized_bed$Callability == "10:50", ]
+low_coverage <- quantized_bed %>% dplyr::filter(Callability == "1:15")
 nrow(low_coverage)
 if(nrow(low_coverage) != 0)
   head(low_coverage) %>%
@@ -187,7 +187,7 @@ if(nrow(low_coverage) != 0)
     kable_styling(bootstrap_options = "striped", full_width = F)
 
 #Extract high coverage regions from quantized.bed file
-high_coverage <- quantized_bed[quantized_bed$Callability == "500:inf", ]
+high_coverage <- quantized_bed %>% dplyr::filter(Callability == "500:inf")
 nrow(high_coverage)
 if(nrow(high_coverage) != 0)
   head(high_coverage) %>%
