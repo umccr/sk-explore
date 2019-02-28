@@ -19,6 +19,7 @@ knitr::opts_chunk$set(collapse = TRUE) # global setup
 ```{r, message=FALSE, warning=FALSE}
 library(tidyr)
 library(dplyr)
+library(tidylog, warn.conflicts = FALSE)
 library(DT)
 library(kableExtra)
 ```
@@ -66,7 +67,28 @@ DT::datatable(filter = list(position = "top", clear = FALSE, plain = TRUE),
                              dom = 'Bfrtip', deferRender = TRUE, searchHighlight = TRUE),
               rownames = FALSE,
               extensions = c('Scroller', 'Responsive')
-              )
+              ) 
+  
+#only output loci with zero/low coverage
+#low_coverage_hotspot <- data.frame()
+low_coverage_hotspot  <- regions_bed_new %>%
+  dplyr::filter(callability == "no_coverage" | coverage == "low_coverage")
+nrow(low_coverage_hotspot)
+
+if (nrow(low_coverage_hotspot) > 0) {
+  low_coverage_hotspot %>%
+  dplyr::select(-end) %>%
+DT::datatable(filter = list(position = "top", clear = FALSE, plain = TRUE),
+              options = list(columnDefs = list(list(targets = c(2, 3), searchable = FALSE)),
+                             scroller = TRUE, scrollX = TRUE, scrollY = 500,
+                             dom = 'Bfrtip', deferRender = TRUE, searchHighlight = TRUE),
+              rownames = FALSE,
+              extensions = c('Scroller', 'Responsive')
+              ) 
+} else {
+  warning('No zero/low coverage hotspot(s) detected')
+}
+
 ```
 
 
