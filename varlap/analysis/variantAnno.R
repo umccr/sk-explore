@@ -14,9 +14,9 @@ info(both)$CLASS <- "both"
 #update header with the new variable description
 info(header(bcbio)) <- rbind(info(header(bcbio)), data.frame(Number=1, Type="String", 
                                                              Description="Variant class - bcbio, dragen or both", row.names = "CLASS"))
-header(dragen) <- rbind(info(header(dragen)), data.frame(Number=1, Type="String", 
+info(header(dragen)) <- rbind(info(header(dragen)), data.frame(Number=1, Type="String", 
                                                          Description="Variant class - bcbio, dragen or both", row.names = "CLASS"))
-header(both) <- rbind(info(header(both)), data.frame(Number=1, Type="String", 
+info(header(both)) <- rbind(info(header(both)), data.frame(Number=1, Type="String", 
                                                      Description="Variant class - bcbio, dragen or both", row.names = "CLASS"))
 
 
