@@ -1,0 +1,208 @@
+---
+title: "Coverage assessment using mosdepth"
+author: "Sehrish Kanwal"
+date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
+output:
+  html_document: 
+    keep_md: true
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+NOW <- Sys.time()
+
+#Time chunks during knitting
+knitr::knit_hooks$set(timeit = function(before) {
+  if(before) {
+    print(paste("Start:", Sys.time()))
+    NOW <- Sys.time()
+  } else {
+    print(paste("Stop:", Sys.time()))
+    print(Sys.time() - NOW)
+  }
+})
+
+knitr::opts_chunk$set(
+  timeit = TRUE
+)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE) # global setup
+```
+
+## Required packages
+
+```{r, message=FALSE}
+library(knitr)
+library(dplyr)
+library(kableExtra)
+```
+
+```{r}
+lf <- function(...) {
+  data.frame(fname = list.files(...)) %>% 
+    knitr::kable(row.names = TRUE)
+}
+```
+
+## Input data
+
+As an example of a decent cellaularity sample, I have selected `CCR180136_WH18F001P025 - purity:0.66` (https://trello.com/c/wuChCgKg/209-201624918whp025).
+
+## Run command
+
+Currently, running mosdepth on spartan, using the following command:
+
+```
+mosdepth --no-per-base --by $target --quantize 0:10:50:500: $sample $bam
+
+--no-per-base     dont output per-base depth. skipping this output will speed execution
+                  substantially. prefer quantized or thresholded values if possible. 
+                  
+--by              the $target file - currently using the hotspot regions.
+
+--quantize        allows splitting coverage into bins and merging adjacent regions 
+                  that fall into the same bin even if they have different exact coverage values.
+```
+
+The location of run directory on spartan is `/data/cephfs/punim0010/projects/Kanwal/Kanwal_mosdepth/samplename`.
+
+**Note**
+
+If `--by` is a BED file with 4 or more columns, it is assumed the the 4th column is the name. That name will be propagated to the mosdepth output in the 4th column with the depth in the 5th column. If this behavior is unwanted, simply send a bed file with 3 columns. 
+
+The hotspot file, that is currently being used (`/data/cephfs/punim0010/extras/umccrise/genomes/GRCh37/hmf/Hotspot.tsv.gz`), is a 4 columns file (`chr, pos, ref, alt`). 
+
+```
+1	8073509	C	A
+1	9777666	C	A
+1	9777666	C	G
+```
+
+I have edited it to inlcude `pos_end` column for a hotspot region such as the target input file to mosdepth looks like:
+
+```
+1	8073509	8073510	C	A
+1	9777666	9777667	C	A
+1	9777666	9777667	C	G
+```
+
+## Output
+
+Currently focussing on `regions.bed` file that contains information about coverage of hotspot regions and `quantized.bed` file that contains information about callability windows.
+
+### Hotspot regions
+
+```{r, message=FALSE}
+mosdepth <- "/Users/kanwals/Documents/UMCCR/data/mosdepth"
+mosdepth_output <- file.path(mosdepth, "CCR180136_WH18F001P025")
+#call lf function to list files in the directory
+lf(mosdepth_output)
+
+#read regions.bed file - first grep the appropriate bed file from folder and then create a path for that name
+regions_bed_name <- list.files(mosdepth_output)[grep(".regions.bed$",list.files(mosdepth_output))]
+regions_bed_path <- file.path(mosdepth_output, regions_bed_name)
+regions_bed <- read.table(regions_bed_path, header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+head(regions_bed)
+colnames(regions_bed) <- c("chr", "start", "end", "ref", "coverage")
+
+#read hotspots file - to include the column that shows the change from ref. nucleotide in the regions.bed file
+hotspots <- read.table("~/Documents/UMCCR/data/mosdepth/hotspot.edited.bed", header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+colnames(hotspots) <- c("chr", "start", "end", "ref", "alt")
+
+#merge region_bed file with hotspots column that has info about the possible nucleotide change.
+regions_bed_hotspot <- left_join(regions_bed, hotspots) %>%
+  dplyr::distinct() 
+#rearrange columns
+regions_bed_hotspot <-regions_bed_hotspot[, c("chr","start", "end", "ref", "alt", "coverage")]
+head(regions_bed_hotspot)
+
+#add callability column to regions.bed file - based on the coverage value
+regions_bed_new <- regions_bed_hotspot %>%
+  #dplyr::select(coverage) %>%
+  dplyr::mutate(callability = case_when(
+    coverage == 0 ~ "0",
+    coverage >=1 && coverage <=15 ~ "1:15",
+    coverage >=15 && coverage <=500 ~ "15:500",
+    coverage >=500 ~ "500:inf"
+  ))
+
+#present output in a table format - only showing first few entries in the output because the .md file size exceeds github file limit 
+head(regions_bed_new) %>%
+  kable(caption = "Coverage value and the corresponding callability level for hotspot regions") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE) %>%
+  scroll_box(height = "400px")
+
+#only output loci with zero/low coverage
+low_coverage_hotspot <- data.frame()
+for (row in 1:nrow(regions_bed_new)){
+  if(regions_bed_new[row,6] %in% c("0:10","10:50")){
+    #low_coverage_hotspot <- rbind[low_coverage_hotspot,regions_bed_new[row,]] This throws a stupid error
+    low_coverage_hotspot <- dplyr::bind_rows(low_coverage_hotspot,regions_bed_new[row,])
+  }
+}
+
+#Number of hotspots with zero/low coverage
+nrow(low_coverage_hotspot)
+
+#present output in a table format
+head(low_coverage_hotspot, 10) %>%
+  kable(caption = "Coverage for zero and low callability hotspot regions - only displaying the first few values") %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  scroll_box(height = "400px")
+```
+
+## Callability levels
+
+Here, analysing the quantized output produced by mosdepth to see if it adds any extra information.
+
+```{r, message=FALSE, warning=FALSE}
+#read quatized.bed file - first grep the appropriate bed file from folder and then create a path for that name
+quantized_bed_name <- list.files(mosdepth_output)[grep(".quantized.bed$",list.files(mosdepth_output))]
+quantized_bed_path <- file.path(mosdepth_output, quantized_bed_name)
+quantized_bed <- readr::read_tsv(quantized_bed_path, col_names = FALSE)
+#assign column names
+colnames(quantized_bed) <- c("Chr", "Start", "End", "Callability")
+#number of values
+nrow(quantized_bed)
+
+#Extract no coverage regions from quantized.bed file
+no_coverage <- quantized_bed %>% dplyr::filter(Callability == "0")
+nrow(no_coverage)
+if(nrow(no_coverage) != 0)
+  head(no_coverage) %>%
+    kable(caption = "No coverage regions - only showing first few values") %>%
+    kable_styling(bootstrap_options = "striped", full_width = F)
+  
+#Extract low coverage regions from quantized.bed file
+low_coverage <- quantized_bed %>% dplyr::filter(Callability == "1:15")
+nrow(low_coverage)
+if(nrow(low_coverage) != 0)
+  head(low_coverage) %>%
+    kable(caption = "Low coverage regions- only showing first few values") %>%
+    kable_styling(bootstrap_options = "striped", full_width = F)
+
+#Extract high coverage regions from quantized.bed file
+high_coverage <- quantized_bed %>% dplyr::filter(Callability == "500:inf")
+nrow(high_coverage)
+if(nrow(high_coverage) != 0)
+  head(high_coverage) %>%
+    kable(caption = "High coverage regions- only showing first few values") %>%
+    kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+
+## Notes
+
+- If we are only interseted in knowing the coverage value and callability level (callable/excessive) for hotspots, then `regions.bed` (after some refactoring) as shown under `Hotspot regions` will suffice for that.
+
+- `quantized.bed` after breaking it to callability categories can help provide overview about sample coverage.
+
+- Need to set cutoffs for each sample based on purity and qc information (instead of hardcoding) 
+
+- Change cutoff value to `0:1:15:500:`
+
+
+

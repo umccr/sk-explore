@@ -1,0 +1,95 @@
+---
+title: "Coverage assessment using mosdepth"
+author: "Sehrish Kanwal"
+date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
+output:
+  html_document: 
+    keep_md: true
+params:
+  regions_bed: '/Users/kanwals/Documents/UMCCR/data/mosdepth/CCR180136_WH18F001P025_fakeY_changedthreshold/CCR180136_WH18F001P025.regions.bed'
+  hotspots_genes: '/Users/kanwals/Documents/UMCCR/data/mosdepth/hotspots/hotspots-ref_alt_genes_uniq_no_chr.bed'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE) # global setup
+```
+
+## Required packages
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyr)
+library(dplyr)
+library(tidylog, warn.conflicts = FALSE)
+library(DT)
+library(kableExtra)
+```
+
+### Hotspot regions
+
+The result of running mosdepth for calculating sequencing coverage of cancer hotspot regions (as defined at `/data/cephfs/punim0010/extras/umccrise/genomes/GRCh37/hmf/Hotspot.tsv.gz`).  
+
+```{r, message=FALSE, warning=FALSE}
+#read in mosdepth regions bed file 
+regions_bed <- read.table(params$regions_bed, header = FALSE, sep = "\t", stringsAsFactors = FALSE, 
+                          col.names=c("chr", "start", "end", "ref", "coverage"))
+
+#read in hotspots file - did some pre-processing on it to add gene names to it
+hotspots_genes <- read.table(params$hotspots_genes, header = FALSE, sep = " ", stringsAsFactors = FALSE, 
+                          col.names=c("chr", "start", "end", "ref_alt", "gene"))
+#separate ref_alt into two separate columns - combined it to act as a fake gene name for bedtools intersect of hotspots with genes bed file
+hotspots_genes <- tidyr::separate(hotspots_genes, col="ref_alt", into=c("ref", "alt"), sep="_", remove=TRUE)
+
+#merge region_bed file with hotspots file that has info about the possible nucleotide change. 
+regions_bed_hotspot <- left_join(regions_bed, hotspots_genes) %>%
+  dplyr::distinct() 
+head(regions_bed_hotspot)
+
+#rearrange columns
+regions_bed_hotspot <-regions_bed_hotspot[, c("chr","start", "end", "gene", "ref", "alt", "coverage")]
+head(regions_bed_hotspot)
+
+#add callability column to regions.bed file - based on the coverage value
+regions_bed_new <- regions_bed_hotspot %>%
+  #dplyr::select(coverage) %>%
+  dplyr::mutate(callability = case_when(
+    coverage == 0 ~ "no_coverage",
+    coverage >=1 && coverage <=15 ~ "low_Coverage",
+    coverage >=15 && coverage <=500 ~ "callable",
+    coverage >=500 ~ "high_coverage"
+  ))
+
+#display results
+regions_bed_new %>%
+  dplyr::select(-end) %>%
+DT::datatable(filter = list(position = "top", clear = FALSE, plain = TRUE),
+              options = list(columnDefs = list(list(targets = c(2, 3), searchable = FALSE)),
+                             scroller = TRUE, scrollX = TRUE, scrollY = 500,
+                             dom = 'Bfrtip', deferRender = TRUE, searchHighlight = TRUE),
+              rownames = FALSE,
+              extensions = c('Scroller', 'Responsive')
+              ) 
+  
+#only output loci with zero/low coverage
+#low_coverage_hotspot <- data.frame()
+low_coverage_hotspot  <- regions_bed_new %>%
+  dplyr::filter(callability == "no_coverage" | coverage == "low_coverage")
+nrow(low_coverage_hotspot)
+
+if (nrow(low_coverage_hotspot) > 0) {
+  low_coverage_hotspot %>%
+  dplyr::select(-end) %>%
+DT::datatable(filter = list(position = "top", clear = FALSE, plain = TRUE),
+              options = list(columnDefs = list(list(targets = c(2, 3), searchable = FALSE)),
+                             scroller = TRUE, scrollX = TRUE, scrollY = 500,
+                             dom = 'Bfrtip', deferRender = TRUE, searchHighlight = TRUE),
+              rownames = FALSE,
+              extensions = c('Scroller', 'Responsive')
+              ) 
+} else {
+  warning('No zero/low coverage hotspot(s) detected')
+}
+
+```
+
+
+
