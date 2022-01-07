@@ -1,0 +1,13 @@
+outdir:
+  class: Directory
+  location: /data/bcl/output
+
+denv: 'prod'
+
+samplesheet:
+  class: File
+  path: /data/bcl/SampleSheet.csv
+
+config:
+  class: Directory
+  location: /home/ssm-user/.config/gspread_pandas

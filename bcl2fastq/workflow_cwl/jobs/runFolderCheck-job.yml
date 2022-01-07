@@ -1,0 +1,5 @@
+denv: 'prod'
+
+input_folder:
+  class: Directory
+  location: /Users/kanwals/Documents/UMCCR/data/bcl2fastq/
