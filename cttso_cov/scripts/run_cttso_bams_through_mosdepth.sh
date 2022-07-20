@@ -8,7 +8,7 @@ WORKFLOW_ID="wfl.3cd456b8d86a4f59b523627d3b6cb2a1"
 WORKFLOW_VERSION="0.3.1"
 
 # Check if the user has set environment variable for PORTAL_TOKEN
-if [[ -z "${PORTAL_TOKEN-}" ]]; then
+if [[ -z "${PORTAL_TOKEN}" ]]; then
   echo "Error! Please set env var PORTAL_TOKEN" 1>&2
 fi
 

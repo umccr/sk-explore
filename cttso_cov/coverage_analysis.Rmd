@@ -118,6 +118,6 @@ dat %>%
   geom_point( size=4, color="orange") +
   coord_flip() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  xlab("") +
-  ylab("coverage_ratio")
+  xlab("coverage_ratio") +
+  ylab("sample_id")
 ```
