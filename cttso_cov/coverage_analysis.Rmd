@@ -27,6 +27,7 @@ library(dplyr)
 library(tidyverse)
 library(stringr)
 library(DT)
+library(jtools)
 ```
 
 ***
@@ -110,14 +111,45 @@ dat <- na.omit(dat)
 datatable(dat, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T), caption = "Ratio of mean coverage of TERT promoter region and region of interest")
 
 # plot results https://r-graph-gallery.com/267-reorder-a-variable-in-ggplot2.html
+#dat %>%
+#  arrange(mean_coverage_ratio) %>%
+#  mutate(sample=factor(sample, levels=sample)) %>% # This trick update the factor levels
+#  ggplot( aes(x=mean_coverage_ratio, y=sample)) +
+#  geom_segment( aes(xend=0, yend=sample)) +
+#  geom_point( size=4, color="orange") +
+#  coord_flip() +
+#  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+#  xlab("coverage_ratio")
+
 dat %>%
   arrange(mean_coverage_ratio) %>%
   mutate(sample=factor(sample, levels=sample)) %>% # This trick update the factor levels
-  ggplot( aes(x=mean_coverage_ratio, y=sample)) +
-  geom_segment( aes(xend=0, yend=sample)) +
-  geom_point( size=4, color="orange") +
-  coord_flip() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  xlab("coverage_ratio") +
-  ylab("sample_id")
+  ggplot( aes(x=sample, y=mean_coverage_ratio)) +
+    geom_point( size=1.5, color="orange") +
+    theme(axis.title.x=element_text(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+# plot results - violin plot
+dat %>%
+  ggplot( aes(y=mean_coverage_ratio, x="sample")) +
+  geom_violin(trim=FALSE, fill="grey") + 
+  geom_dotplot(binaxis= "y",
+               stackdir = "center",
+               dotsize = 0.5,
+               fill = 1) +
+  theme_apa()
+
+# plot results - violin plot
+dat %>%
+  ggplot( aes(y=mean_coverage_ratio, x="sample")) +
+  geom_violin(trim=FALSE, fill="grey") + 
+  geom_boxplot(width=0.1) +
+  theme_apa()
+
+dat %>%
+  ggplot(aes(x = mean_coverage_ratio)) +
+  geom_histogram(binwidth = 0.01, color = "black") +
+  geom_boxplot(width=0.1) + theme_apa()
+
 ```
