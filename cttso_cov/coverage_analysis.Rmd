@@ -64,6 +64,19 @@ df <- list_of_files %>%
   mutate(sample_id = gsub(".regions.bed", "", sample_id)) %>%
   dplyr::select(sample_id, region_start, region_end, mean_coverage)
 
+# filter data for regions and create groups
+df_region_of_interest <- df %>%
+  dplyr::filter(region_start==1295105) %>%
+  dplyr::mutate(group="region_of_interest") %>%
+  dplyr::select(group, mean_coverage)
+
+df_rest_of_region <- df %>%
+  dplyr::filter(region_start==1295450) %>%
+  dplyr::mutate(group="rest_of_region") %>%
+  dplyr::select(group, mean_coverage)
+
+df_regions_combined <- rbind(df_region_of_interest, df_rest_of_region)
+
 # display input data in a table
 datatable(df, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T), caption = "Mean coverage of TERT promoter region and region of interest")
 ```
@@ -121,6 +134,14 @@ datatable(dat, rownames = FALSE, filter="top", options = list(pageLength = 5, sc
 #  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
 #  xlab("coverage_ratio")
 
+means <- aggregate(mean_coverage ~  group, df_regions_combined, mean)
+means$mean_coverage = round(means$mean_coverage, 2)
+
+df_regions_combined %>%
+  ggplot( aes(y=mean_coverage, x=group, fill=group)) +
+  geom_boxplot(alpha=0.7) +
+  geom_text(data = means, aes(label = mean_coverage, y = mean_coverage + 0.09))
+
 dat %>%
   arrange(mean_coverage_ratio) %>%
   mutate(sample=factor(sample, levels=sample)) %>% # This trick update the factor levels
@@ -149,7 +170,7 @@ dat %>%
 
 dat %>%
   ggplot(aes(x = mean_coverage_ratio)) +
-  geom_histogram(binwidth = 0.01, color = "black") +
+  geom_histogram(binwidth = 0.01, color = "orange") +
   geom_boxplot(width=0.1) + theme_apa()
 
 ```
