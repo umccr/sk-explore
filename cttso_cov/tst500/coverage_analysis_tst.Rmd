@@ -45,8 +45,8 @@ mosdepth can output the mean per-region given a BED file of regions. The result 
 
 ```{r raw_cov_results, message=FALSE, warning=FALSE}
 # read in bed file with regions of interest
-bed <- as.data.frame(read.table("/Users/kanwals/UMCCR/data/projects/cttso-qc/TST500C_manifest.bed", header = FALSE, sep="\t", stringsAsFactors=FALSE))
-colnames(bed) <- c("chr", "region_start", "region_end", "name")
+bed_coverage <- as.data.frame(read.table("/Users/kanwals/UMCCR/data/projects/cttso-qc/TST500C_manifest.bed", header = FALSE, sep="\t", stringsAsFactors=FALSE))
+colnames(bed_coverage) <- c("chr", "region_start", "region_end", "name")
 
 # list files in the input directory - made using mosdepth
 list_of_files <- list.files(path = params$mosdepth_output,
@@ -65,104 +65,30 @@ for (i in 1:length(list_of_files)){
     dplyr::rename(!!sample_name := mean_coverage) %>%
     dplyr::select(one_of(sample_name))
   # add sample_coverage to original bed file
-  bed <- cbind(bed, sample_coverage) 
-    
+  bed_coverage <- cbind(bed_coverage, sample_coverage) 
 }
 
-# display input data in a table
-datatable(df, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T), caption = "Mean coverage of TERT promoter region and region of interest")
 ```
 
-## Coverage plot
+## Coverage check
 
-The mean coverage ratio for the cttso500 samples can be found in the table below.
+The most relevant information would be what regions consistently have less than X coverage (say less than 1000x in 90% of the samples). That would convince me to drop them from the assay. 
 
-Also, it's recommended to view the coverage plot on a bigger screen, as the number of samples and data points is large. 
-
-```{r prepare_data, message=FALSE, warning=FALSE, results='hide'}
-#read input
-coverage_beds <-list.files(params$mosdepth_output,
-           full.names = T)
-
-dat <- data.frame(matrix(ncol = 2, nrow = 0))
-colnames(dat) = c("sample", "mean_coverage_ratio")
-file <- data.frame()
-
-for (i in 1:length(coverage_beds)){
-  print(coverage_beds[i])
-  file <- read.table(coverage_beds[i],col.names = c("chr", "region_start", "region_end", "mean_coverage" )) %>%
-    mutate(sample_name = basename(coverage_beds[i])) %>%
-    mutate(sample_name = gsub(".regions.bed.gz", "", sample_name)) %>%
-    mutate(ratio = mean_coverage[1] / mean_coverage[2]) %>%
-    distinct(.keep_all = FALSE)
-
-
-  sample_name = unique(file$sample_name)
-  ratio_mean_cov = unique(file$ratio)
-
-  dat[nrow(dat) + 1, ] <- c(sample_name, round(ratio_mean_cov, 2))
+```{r filter_data, message=FALSE, warning=FALSE, results='hide'}
+# initialize variables for loops
+df_flagged <- data.frame(matrix(ncol = ncol(bed_coverage), nrow = 0))
+colnames(df_flagged) <- colnames(bed_coverage)
+for (region in 1:nrow(bed_coverage)){
+  counter <- 1
+  for (sample in 5:length(list_of_files)){
+    if (bed_coverage[region,sample] < 1000.0) {
+      counter = counter + 1
+    }
+  }
+  if (counter/length(list_of_files) > 0.90){
+    df_flagged[nrow(df_flagged) + 1,] <- bed_coverage[region,]
+  }
 }
 
-# sort ratio
-dat <- dat[order(dat$mean_coverage_ratio),]
-# convert ratio values to numeric and omit nan values
-dat$mean_coverage_ratio <- as.numeric(as.character(dat$mean_coverage_ratio))
-dat <- na.omit(dat)
-
 ```
 
-``` {r coverage_plot, message=FALSE, warning=FALSE,}
-# display data in a table
-datatable(dat, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T), caption = "Ratio of mean coverage of TERT promoter region and region of interest")
-
-# plot results https://r-graph-gallery.com/267-reorder-a-variable-in-ggplot2.html
-#dat %>%
-#  arrange(mean_coverage_ratio) %>%
-#  mutate(sample=factor(sample, levels=sample)) %>% # This trick update the factor levels
-#  ggplot( aes(x=mean_coverage_ratio, y=sample)) +
-#  geom_segment( aes(xend=0, yend=sample)) +
-#  geom_point( size=4, color="orange") +
-#  coord_flip() +
-#  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-#  xlab("coverage_ratio")
-
-means <- aggregate(mean_coverage ~  group, df_regions_combined, mean)
-means$mean_coverage = round(means$mean_coverage, 2)
-
-df_regions_combined %>%
-  ggplot( aes(y=mean_coverage, x=group, fill=group)) +
-  geom_boxplot(alpha=0.7) +
-  geom_text(data = means, aes(label = mean_coverage, y = mean_coverage + 0.09))
-
-dat %>%
-  arrange(mean_coverage_ratio) %>%
-  mutate(sample=factor(sample, levels=sample)) %>% # This trick update the factor levels
-  ggplot( aes(x=sample, y=mean_coverage_ratio)) +
-    geom_point( size=1.5, color="orange") +
-    theme(axis.title.x=element_text(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-
-# plot results - violin plot
-dat %>%
-  ggplot( aes(y=mean_coverage_ratio, x="sample")) +
-  geom_violin(trim=FALSE, fill="grey") + 
-  geom_dotplot(binaxis= "y",
-               stackdir = "center",
-               dotsize = 0.5,
-               fill = 1) +
-  theme_apa()
-
-# plot results - violin plot
-dat %>%
-  ggplot( aes(y=mean_coverage_ratio, x="sample")) +
-  geom_violin(trim=FALSE, fill="grey") + 
-  geom_boxplot(width=0.1) +
-  theme_apa()
-
-dat %>%
-  ggplot(aes(x = mean_coverage_ratio)) +
-  geom_histogram(binwidth = 0.01, color = "orange") +
-  geom_boxplot(width=0.1) + theme_apa()
-
-```
