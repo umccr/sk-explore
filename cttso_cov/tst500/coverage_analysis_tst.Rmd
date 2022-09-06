@@ -1,11 +1,11 @@
 ---
-title: "Coverage analysis of cttso data"
+title: "Coverage analysis of cttso data using TST500C_manifest.bed"
 author: "Sehrish Kanwal"
 date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
 output:
   html_document:
     keep_md: yes
-    css: style.css
+    css: ../style.css
     theme: readable
     toc: true
     toc_float: true
@@ -40,7 +40,7 @@ In this analysis, we are looking at the coverage of panel target regions across 
 
 The TSO500 alignment files used for calculating coverage exist in GDS. The script used to run [mosdepth tool](https://github.com/brentp/mosdepth) on these bams for ~280 samples can be found [here](./scripts/run_cttso_bams_through_mosdepth.sh)
 
-mosdepth can output the mean per-region given a BED file of regions. The result is summarised in the table below:
+mosdepth can output the mean per-region given a BED file of regions. The result is summarized below.
 
 
 ```{r raw_cov_results, message=FALSE, warning=FALSE}
@@ -72,15 +72,17 @@ for (i in 1:length(list_of_files)){
 
 ## Coverage check
 
-The most relevant information would be what regions consistently have less than X coverage (say less than 1000x in 90% of the samples). That would convince me to drop them from the assay. 
+We are interested to check what regions consistently have less than X coverage (say less than 1000x in 90% of the samples). On the basis of this information, we might consider dropping them from the assay. 
+
 
 ```{r filter_data, message=FALSE, warning=FALSE, results='hide'}
-# initialize variables for loops
+# initialize df for flagged samples
 df_flagged <- data.frame(matrix(ncol = ncol(bed_coverage), nrow = 0))
 colnames(df_flagged) <- colnames(bed_coverage)
+# loop through the collated coverage data and check samples coverage for each bed entry
 for (region in 1:nrow(bed_coverage)){
   counter <- 1
-  for (sample in 5:length(list_of_files)){
+  for (sample in 5:length(list_of_files)+4){
     if (bed_coverage[region,sample] < 1000.0) {
       counter = counter + 1
     }
@@ -89,6 +91,12 @@ for (region in 1:nrow(bed_coverage)){
     df_flagged[nrow(df_flagged) + 1,] <- bed_coverage[region,]
   }
 }
-
 ```
+
+```{r display_data, message=FALSE, warning=FALSE}
+# display filtered data in a table
+datatable(df_flagged, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T), caption = "Regions consistently with low coverage <1000x")
+```
+
+Out of `r nrow(bed_coverage)` regions in the target bed file, `r nrow(df_flagged)` regions shave less than 1000x coverage in 90% of the (`r length(list_of_files)`) samples.
 
