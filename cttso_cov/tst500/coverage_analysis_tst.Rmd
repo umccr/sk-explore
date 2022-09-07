@@ -65,8 +65,11 @@ for (i in 1:length(list_of_files)){
     dplyr::rename(!!sample_name := mean_coverage) %>%
     dplyr::select(one_of(sample_name))
   # add sample_coverage to original bed file
-  bed_coverage <- cbind(bed_coverage, sample_coverage) 
+  bed_coverage <- cbind(bed_coverage, sample_coverage)
 }
+
+mean_cov_across_samples = round(rowMeans(bed_coverage[,c(5:ncol(bed_coverage))]), 2)
+bed_coverage <- add_column(bed_coverage, mean_cov_across_samples, .after = 4)
 
 ```
 
@@ -81,8 +84,8 @@ df_flagged <- data.frame(matrix(ncol = ncol(bed_coverage), nrow = 0))
 colnames(df_flagged) <- colnames(bed_coverage)
 # loop through the collated coverage data and check samples coverage for each bed entry
 for (region in 1:nrow(bed_coverage)){
-  counter <- 1
-  for (sample in 5:length(list_of_files)+4){
+  counter <- 0
+  for (sample in 6:ncol(bed_coverage)){
     if (bed_coverage[region,sample] < 1000.0) {
       counter = counter + 1
     }
@@ -95,8 +98,18 @@ for (region in 1:nrow(bed_coverage)){
 
 ```{r display_data, message=FALSE, warning=FALSE}
 # display filtered data in a table
-datatable(df_flagged, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T), caption = "Regions consistently with low coverage <1000x")
+datatable(df_flagged, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Regions consistently with low coverage <1000x")
+write.csv(df_flagged[ ,1:4], file = 'tst500c_low_coverage_regions.csv', row.names = FALSE, quote = FALSE)
 ```
 
 Out of `r nrow(bed_coverage)` regions in the target bed file, `r nrow(df_flagged)` regions shave less than 1000x coverage in 90% of the (`r length(list_of_files)`) samples.
+
+## TERT promoter region check
+
+```{r tert, message=FALSE, warning=FALSE, results='hide'}
+tert_row <-  which(bed_coverage$name == "TERT_Promoter")
+tert_row_info <- as.numeric(bed_coverage[tert_row,6:ncol(bed_coverage)])
+length(tert_row_info[tert_row_info>1000])
+```
+
 
