@@ -110,6 +110,23 @@ Out of `r nrow(bed_coverage)` regions in the target bed file, `r nrow(df_flagged
 tert_row <-  which(bed_coverage$name == "TERT_Promoter")
 tert_row_info <- as.numeric(bed_coverage[tert_row,6:ncol(bed_coverage)])
 length(tert_row_info[tert_row_info>1000])
+
+hist_row <-  which(bed_coverage$name == "HIST2H3A_Exon1_NM001005464")
+hist_row_info <- as.numeric(bed_coverage[hist_row,6:ncol(bed_coverage)])
+length(hist_row_info[hist_row_info>1000])
 ```
 
+## Comparison with vcf analysis
+
+```{r compare_vcf, message=FALSE, warning=FALSE}
+samples_hm <- scan("/Users/kanwals/UMCCR/data/projects/cttso-qc/samples_zero_cov_helen.txt", what="", sep="\n")
+regions_hm <- as.data.frame(read.table("/Users/kanwals/UMCCR/data/projects/cttso-qc/TST500C_manifest_hm.bed", header = FALSE, sep="\t", stringsAsFactors=FALSE))
+names.use <- names(bed_coverage)[(names(bed_coverage) %in% samples_hm)]
+#subset data to samples of interest and then also subset to regions of interest
+bed_coverage_subset <-  bed_coverage[, names.use] %>%
+  filter(name %in% regions_hm$V4)
+
+regions_hm %>%
+  filter(!regions_hm$V4 %in% bed_coverage$name)
+```
 
