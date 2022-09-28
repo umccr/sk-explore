@@ -1,0 +1,122 @@
+---
+title: "Coverage analysis of ALT regions in WGS data"
+author: "Sehrish Kanwal"
+date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
+output:
+  html_document:
+    keep_md: yes
+    css: ../style.css
+    theme: readable
+    toc: true
+    toc_float: true
+    code_folding: hide
+  rmdformats::material:
+    highlight: kate
+params:
+  mosdepth_output: '/Users/kanwals/UMCCR/analysis/coverage/mosdepth_output'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+### Required packages.
+library(here)
+library(dplyr)
+library(tidyverse)
+library(stringr)
+library(DT)
+library(jtools)
+```
+
+***
+
+## Introduction
+
+GRCh38/hg38 is the assembly of the human genome released December of 2013, that uses alternate or ALT contigs to represent common complex variation, including ALT contigs to represent common complex variation, including HLA loci. Alternate contigs, alternate scaffolds or alternate loci allow for representation of diverging haplotypes. These regions are too complex for a single representation. Identify ALT contigs by their _alt suffix. The GRCh38 ALT contigs total 109Mb in length and span 60Mb of the primary assembly. Alternate contig sequences can be novel to highly diverged or nearly identical to corresponding primary assembly sequence. Sequences that are highly diverged from the primary assembly only contribute a few million bases. Most subsequences of ALT contigs are fairly similar to the primary assembly (reference: https://gatk.broadinstitute.org/hc/en-us/articles/360041155232-Reference-Genome-Components). In this analysis, we are interested in looking at the coverage of ALT regions on chromosome in our WGS normal samples. 
+
+## Data
+
+The WGS alignment files for normal samples used in calculating coverage exist in GDS. The location of this data is:
+
+```
+gds://production/analysis_data/SBJ02788/wgs_tumor_normal/2022090499823d77/L2201304_L2201302_dragen/MDX220237_normal.bam
+gds://production/analysis_data/SBJ02805/wgs_tumor_normal/20220904aa166c4d/L2201307_L2201306_dragen/PRJ222041_normal.bam
+gds://production/analysis_data/SBJ02806/wgs_tumor_normal/202209040a250353/L2201317_L2201308_dragen/PRJ222047_normal.bam
+gds://production/analysis_data/SBJ02809/wgs_tumor_normal/20220917d5f9d1f7/L2201370_L2201369_dragen/PRJ222092_normal.bam
+gds://production/analysis_data/SBJ02811/wgs_tumor_normal/202209111885fd6f/L2201333_L2201332_dragen/MDX220248_normal.bam
+gds://production/analysis_data/SBJ02827/wgs_tumor_normal/202209175a7a450c/L2201366_L2201365_dragen/PRJ222068_normal.bam
+gds://production/analysis_data/SBJ02829/wgs_tumor_normal/202209172b49283c/L2201364_L2201363_dragen/MDX220256_normal.bam
+gds://production/analysis_data/SBJ02830/wgs_tumor_normal/2022091751eec22b/L2201374_L2201373_dragen/PRJ222096_normal.bam
+gds://production/analysis_data/SBJ02831/wgs_tumor_normal/20220917fb72fcff/L2201372_L2201371_dragen/PRJ222093_normal.bam
+gds://production/analysis_data/SBJ02739/wgs_tumor_normal/20220821c421d212/L2201209_L2201210_dragen/PRJ222014_normal.bam
+```
+
+
+mosdepth was used to calculate mean per-region given a [BED file](./Alt_contigs_hg38_sorted.bed) of regions. The result is summarized below.
+
+
+```{r raw_cov_results, message=FALSE, warning=FALSE}
+# read in bed file with regions of interest
+bed_coverage <- as.data.frame(read.table("/Users/kanwals/UMCCR/git/sk-explore/coverage_alts/Alt_contigs_hg38_sorted.bed", header = FALSE, sep="\t", stringsAsFactors=FALSE))
+colnames(bed_coverage) <- c("chr", "region_start", "region_end")
+
+# list files in the input directory - made using mosdepth
+list_of_files <- list.files(path = params$mosdepth_output,
+                            recursive = TRUE,
+                            pattern = "\\.bed.gz$",
+                            full.names = TRUE)
+
+for (i in 1:length(list_of_files)){
+  # read files and prepare data format for display
+  file <- read_tsv(list_of_files[i],col_names = c("chr", "region_start", "region_end", "name", "mean_coverage" ),col_types = "cn") %>%
+      mutate(sample_id = basename(list_of_files[i])) %>%
+      mutate(sample_id = gsub("*.regions.bed.gz", "", sample_id)) 
+  # find sample id and rename mean_coverage column using it
+  sample_name <- unique(file$sample_id)
+  sample_coverage <- file %>%
+    dplyr::rename(!!sample_name := mean_coverage) %>%
+    dplyr::select(one_of(sample_name))
+  # add sample_coverage to original bed file
+  bed_coverage <- cbind(bed_coverage, sample_coverage)
+}
+
+mean_cov_across_samples = round(rowMeans(bed_coverage[,c(5:ncol(bed_coverage))]), 2)
+bed_coverage <- add_column(bed_coverage, mean_cov_across_samples, .after = 4)
+
+```
+
+## Coverage check
+
+We are interested to check what regions consistently have less than X coverage (say less than 500x in 90% of the samples). On the basis of this information, we might consider dropping them from the assay. 
+
+
+```{r filter_data, message=FALSE, warning=FALSE, results='hide'}
+# initialize df for flagged samples
+df_flagged <- data.frame(matrix(ncol = ncol(bed_coverage), nrow = 0))
+colnames(df_flagged) <- colnames(bed_coverage)
+# loop through the collated coverage data and check samples coverage for each bed entry
+for (region in 1:nrow(bed_coverage)){
+  counter <- 0
+  for (sample in 6:ncol(bed_coverage)){
+    if (bed_coverage[region,sample] < 500.0) {
+      counter = counter + 1
+    }
+  }
+  # checking if the region has less than 500x coverage in 90% of the samples
+  if (counter/length(list_of_files) > 0.90){
+    df_flagged[nrow(df_flagged) + 1,] <- bed_coverage[region,]
+  }
+}
+```
+
+```{r display_data, message=FALSE, warning=FALSE}
+# display filtered data in a table
+datatable(df_flagged, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Regions consistently with low coverage <500")
+write.csv(df_flagged[ ,1:4], file = 'stitched_tst500c_low_coverage_regions.csv', row.names = FALSE, quote = FALSE)
+```
+
+Out of `r nrow(bed_coverage)` regions in the target bed file, `r nrow(df_flagged)` regions shave less than 500 coverage in 90% of the (`r length(list_of_files)`) samples.
+
+
