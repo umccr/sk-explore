@@ -107,9 +107,15 @@ bed_coverage %>%
 ```
 
 ```{r display_data, message=FALSE, warning=FALSE}
+# display data in a table
+datatable(bed_coverage, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Coverage of alt regions")
+
+cutoff <- 10
+bed_coverage_intermediate <- bed_coverage %>%
+  dplyr::mutate(across(5:ncol(bed_coverage), ~replace(., . >= cutoff, NA)))
+bed_ccoverage_filtered <- bed_coverage_intermediate[complete.cases(bed_coverage_intermediate[ , 5:ncol(bed_coverage_intermediate)]),]
 # display filtered data in a table
-datatable(bed_coverage, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Regions consistently with low coverage <500")
-write.csv(bed_coverage[ ,1:4], file = 'stitched_tst500c_low_coverage_regions.csv', row.names = FALSE, quote = FALSE)
+datatable(bed_ccoverage_filtered, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Alt rgions with coverage less than the cutoff across tested samples")
 ```
 
 
