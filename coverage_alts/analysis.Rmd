@@ -13,7 +13,9 @@ output:
   rmdformats::material:
     highlight: kate
 params:
-  mosdepth_output: '/Users/kanwals/UMCCR/analysis/coverage/mosdepth_output'
+  #mosdepth_output: '/Users/kanwals/UMCCR/analysis/coverage/mosdepth_output'
+  #mosdepth_output: '/Users/kanwals/UMCCR/analysis/coverage/mosdepth_output/exclude_non_primary_supp_alignments'
+  mosdepth_output: '/Users/kanwals/UMCCR/analysis/coverage/mosdepth_output_hla/exclude_non_primary_supp_alignments'
 ---
 
 ```{r setup, include=FALSE}
@@ -59,7 +61,7 @@ mosdepth was used to calculate mean per-region given a [BED file](./Alt_contigs_
 
 ```{r raw_cov_results, message=FALSE, warning=FALSE}
 # read in bed file with regions of interest
-bed_coverage <- as.data.frame(read.table("/Users/kanwals/UMCCR/git/sk-explore/coverage_alts/Alt_contigs_hg38_sorted.bed", header = FALSE, sep="\t", stringsAsFactors=FALSE))
+bed_coverage <- as.data.frame(read.table("/Users/kanwals/UMCCR/git/sk-explore/coverage_alts/HLA_alts_hg38_sorted.bed", header = FALSE, sep="\t", stringsAsFactors=FALSE))
 colnames(bed_coverage) <- c("chr", "region_start", "region_end")
 
 # list files in the input directory - made using mosdepth
@@ -108,14 +110,16 @@ bed_coverage %>%
 
 ```{r display_data, message=FALSE, warning=FALSE}
 # display data in a table
-datatable(bed_coverage, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Coverage of alt regions")
+datatable(bed_coverage, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Coverage of HLA regions using default")
 
-cutoff <- 10
+cutoff <- 30
 bed_coverage_intermediate <- bed_coverage %>%
   dplyr::mutate(across(5:ncol(bed_coverage), ~replace(., . >= cutoff, NA)))
-bed_ccoverage_filtered <- bed_coverage_intermediate[complete.cases(bed_coverage_intermediate[ , 5:ncol(bed_coverage_intermediate)]),]
+bed_coverage_filtered <- bed_coverage_intermediate[complete.cases(bed_coverage_intermediate[ , 5:ncol(bed_coverage_intermediate)]),]
 # display filtered data in a table
-datatable(bed_ccoverage_filtered, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "Alt rgions with coverage less than the cutoff across tested samples")
+#datatable(bed_coverage_filtered, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T, scrollY=T), caption = "HLA regions with coverage less than the cutoff across tested samples")
+
+
 ```
 
 
