@@ -1,5 +1,6 @@
-# Required package
+# Required packages
 library(plotly)
+library(networkD3)
 
 # Define nodes and links data
 nodes <- data.frame(name = c(
@@ -77,7 +78,29 @@ Four_1,   One_2,   2,   pleo
 Four_1,   Three_2,   1,   pleo
 Five_1,   One_2,    2,    mono
 "
-links <- read.csv(text = csv_data, header = TRUE, strip.white = TRUE)
+csv_data_update <- "
+source,    target,    value,  group
+One_1,     One_2,     8,    mono
+Two_1,     One_2,     4,    mono
+Two_1,     Two_2,     1,    mono
+Three_1,     One_2,   1,    mono
+Four_1,   One_2,   2,   mono
+Five_1,   One_2,    2,    mono
+One_1,     One_2,     3,    pleo
+Two_1,     One_2,     4,    pleo
+Two_1,     Two_2,     1,    pleo
+Three_1,     One_2,   4,    pleo
+Three_1,     Two_2,   1,  pleo
+Four_1,   One_2,   1,   pleo
+Four_1,   Three_2,   1,   pleo
+Four_1,   Four_2, 1,  pleo
+One_1,     One_2,     5,    rcc
+One_1,     One_2,     2,    swi
+Two_1,     One_2,     2,    swi
+
+
+"
+links <- read.csv(text = csv_data_update, header = TRUE, strip.white = TRUE)
 
 # Extract unique node IDs from source and target columns
 id <- unique(c(as.character(links$source), as.character(links$target)))
@@ -109,7 +132,7 @@ sankeyNetwork(
   Target = "IDtarget",
   Value = "value",
   NodeID = "label",
-  fontSize = 12,
+  fontSize = 16,
   colourScale = color_scale,
   LinkGroup = "group",
   NodeGroup = "group"
