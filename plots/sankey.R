@@ -97,10 +97,24 @@ Four_1,   Four_2, 1,  pleo
 One_1,     One_2,     5,    rcc
 One_1,     One_2,     2,    swi
 Two_1,     One_2,     2,    swi
-
-
 "
-links <- read.csv(text = csv_data_update, header = TRUE, strip.white = TRUE)
+
+# Malignant potential data
+csv_malignant <- "
+source,    target,    value,  group
+Malignant_1,     Malignant_2,     12, mono
+Malignant_1,     Malignant_2,     14, pleo
+Malignant_1,     Malignant_2,     5, rcc
+Malignant_1,     Malignant_2,     3, swi
+Uncertain,     Malignant,     4,  mono
+Uncertain,     Benign,     2, rcc
+Uncertain,     Intermediate,   1, mono
+Uncertain_1,   Uncertain_2,   1, swi
+Uncertain_1,   Uncertain_2,   1, mono
+Uncertain,   Uncertain-neoplastic,    1, pleo
+"
+
+links <- read.csv(text = csv_malignant, header = TRUE, strip.white = TRUE)
 
 # Extract unique node IDs from source and target columns
 id <- unique(c(as.character(links$source), as.character(links$target)))
@@ -115,7 +129,7 @@ nodes <- data.frame(id = id, label = label)
 # reference https://r-graph-gallery.com/322-custom-colours-in-sankey-diagram.html
 nodes$group <- as.factor(c("my_unique_group"))
 
-# Update links data frame to add id sourcw and target columns
+# Update links data frame to add id source and target columns
 links$IDsource <- match(links$source, nodes$id) - 1
 links$IDtarget <- match(links$target, nodes$id) - 1
 
