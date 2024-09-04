@@ -114,46 +114,48 @@ Uncertain_1,   Uncertain_2,   1, mono
 Uncertain,   Uncertain-neoplastic,    1, pleo
 "
 
-links <- read.csv(text = csv_malignant, header = TRUE, strip.white = TRUE)
+MakeSankey <- function(input_csv) {
+  links <- read.csv(text = input_csv, header = TRUE, strip.white = TRUE)
 
-# Extract unique node IDs from source and target columns
-id <- unique(c(as.character(links$source), as.character(links$target)))
+  # Extract unique node IDs from source and target columns
+  id <- unique(c(as.character(links$source), as.character(links$target)))
 
-# Create labels by removing the suffix
-label <- sub("_[0-9]", "", id)
+  # Create labels by removing the suffix
+  label <- sub("_[0-9]", "", id)
 
-# Create nodes data frame
-nodes <- data.frame(id = id, label = label)
+  # Create nodes data frame
+  nodes <- data.frame(id = id, label = label)
 
-# Add a 'group' column to each node. Here I decided to put all of them in the same group to make them grey
-# reference https://r-graph-gallery.com/322-custom-colours-in-sankey-diagram.html
-nodes$group <- as.factor(c("my_unique_group"))
+  # Add a 'group' column to each node. Here I decided to put all of them in the same group to make them grey
+  # reference https://r-graph-gallery.com/322-custom-colours-in-sankey-diagram.html
+  nodes$group <- as.factor(c("my_unique_group"))
 
-# Update links data frame to add id source and target columns
-links$IDsource <- match(links$source, nodes$id) - 1
-links$IDtarget <- match(links$target, nodes$id) - 1
+  # Update links data frame to add id source and target columns
+  links$IDsource <- match(links$source, nodes$id) - 1
+  links$IDtarget <- match(links$target, nodes$id) - 1
 
-# Define color scale for groups
-color_scale <- 'd3.scaleOrdinal()
+  # Define color scale for groups
+  color_scale <- 'd3.scaleOrdinal()
                 .domain(["mono", "pleo", "rcc", "swi", "my_unique_group"])
                 .range(["#69b3a2", "#b3697a", "#b37d69", "#a269b3", "grey"])'
 
-# Create Sankey network diagram
-p <- sankeyNetwork(
-  Links = links,
-  Nodes = nodes,
-  Source = "IDsource",
-  Target = "IDtarget",
-  Value = "value",
-  NodeID = "label",
-  fontSize = 16,
-  colourScale = color_scale,
-  LinkGroup = "group",
-  NodeGroup = "group"
-)
+  # Create Sankey network diagram
+  p <- sankeyNetwork(
+    Links = links,
+    Nodes = nodes,
+    Source = "IDsource",
+    Target = "IDtarget",
+    Value = "value",
+    NodeID = "label",
+    fontSize = 16,
+    colourScale = color_scale,
+    LinkGroup = "group",
+    NodeGroup = "group"
+  )
 
-JS <-
-  '
+  # Add a color legend
+  JS <-
+    '
     function(el, x, data){
       var svg = d3.select("svg")
       // Handmade legend
@@ -163,6 +165,9 @@ JS <-
       svg.append("text").attr("x", 35).attr("y", 30).text("variable W").style("font-size", "15px").attr("alignment-baseline","middle")
     }
     '
-p <- htmlwidgets::onRender(p,JS)
+  p <- htmlwidgets::onRender(p,JS)
+  return(p)
+}
 
+malignant_sankey <- MakeSankey(csv_malignant)
 
