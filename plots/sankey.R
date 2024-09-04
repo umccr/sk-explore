@@ -139,7 +139,7 @@ color_scale <- 'd3.scaleOrdinal()
                 .range(["#69b3a2", "#b3697a", "#b37d69", "#a269b3", "grey"])'
 
 # Create Sankey network diagram
-sankeyNetwork(
+p <- sankeyNetwork(
   Links = links,
   Nodes = nodes,
   Source = "IDsource",
@@ -151,4 +151,18 @@ sankeyNetwork(
   LinkGroup = "group",
   NodeGroup = "group"
 )
+
+JS <-
+  '
+    function(el, x, data){
+      var svg = d3.select("svg")
+      // Handmade legend
+      svg.append("circle").attr("cx",25).attr("cy",10).attr("r", 6).style("fill", "#5485AB")
+      svg.append("circle").attr("cx",25).attr("cy",30).attr("r", 6).style("fill", "#BA4682")
+      svg.append("text").attr("x", 35).attr("y", 10).text("variable M").style("font-size", "15px").attr("alignment-baseline","middle")
+      svg.append("text").attr("x", 35).attr("y", 30).text("variable W").style("font-size", "15px").attr("alignment-baseline","middle")
+    }
+    '
+p <- htmlwidgets::onRender(p,JS)
+
 
