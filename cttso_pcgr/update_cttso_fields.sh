@@ -22,7 +22,7 @@ tabix -s1 -b2 -e2 "${input_file_name}_annot-test.txt.gz"
 echo -e '##INFO=<ID=VF,Number=1,Type=Float,Description="Variant Frequency">' >> hdr.txt
 
 # Transfer the annotation and header
-/Users/kanwals/miniconda/envs/bcf/bin/bcftools annotate  -s "PRJ200629_L2100340.cleaned.stitched.bam" -a "${input_file_name}_annot-test.txt.gz" -h hdr.txt -c CHROM,POS,INFO/VF "$1" > "${input_file_name}_annot.vcf"
+bcftools annotate -a "${input_file_name}_annot-test.txt.gz" -h hdr.txt -c CHROM,POS,INFO/VF "$1" > "${input_file_name}_annot.vcf"
 
 # Update INFO DP field
 bcftools annotate -c INFO/VDP:=INFO/DP "${input_file_name}_annot.vcf" > "${input_file_name}_annot_VDP.vcf"
