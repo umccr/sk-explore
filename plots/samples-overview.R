@@ -22,8 +22,9 @@ pi_col <- data.frame(
 # Data update
 pi_col <- data.frame(
   outcome = c("Failed sample QC (not sequenced)", "Failed WGS QC (sequenced)", "WGTS reporting"),
-  category = c("UnSuccesssful", "Successful", "Successful"),
-  value = c(5, 4, 45)
+  category = c("UnSuccessful", "UnSuccessful", "Successful"),
+  value = c(5, 4, 45),
+  stringsAsFactors = FALSE
 )
 
 # Pie Donut chart using webr
@@ -65,13 +66,14 @@ custom_colors <- c(
   "UnSuccessful" = "#FF6666",
   "Successful" = "#66CC99",
   "Failed sample QC (not sequenced)" = "#FF9999",
-  "Failed WGS QC (sequenced)" = "#99CCFF",
+  "Failed WGS QC (sequenced)" = "#FF9999",
   "WGTS reporting" = "#66CC99"
 )
 
 
 sunburst_data <- sunburst_data %>%
   mutate(color = custom_colors[labels])
+
 plot_ly() %>%
   config(
     toImageButtonOptions = list(
@@ -115,9 +117,9 @@ fig_nolabel <- plot_ly(
   values = ~value,
   type = 'sunburst',
   branchvalues = 'total',
-  marker = list(colors = ~color), # Apply custom colors
+  marker = list(colors = ~color),         # Apply custom colors
   textinfo = 'none',
-  rotation = 90
+  rotation = 153
 )
 
 fig_nolabel <- fig_nolabel %>%
@@ -129,5 +131,6 @@ fig_nolabel <- fig_nolabel %>%
       height = 600
     )
   )
+
 # Print without labels
 fig_nolabel
