@@ -20,6 +20,7 @@ tabix -s1 -b2 -e2 "${input_file_name}_annot-test.txt.gz"
 
 # Create header line
 echo -e '##INFO=<ID=AF,Number=1,Type=Float,Description="Allele Frequency">' >> hdr.txt
+echo -e '##FORMAT=<ID=VAF,Number=1,Type=Float,Description="Variant Allele Frequency">' >> hdr.txt
 echo -e '##FORMAT=<ID=VDP,Number=1,Type=Integer,Description="Read Depth">' >> hdr-dp.txt
 
 # Transfer the annotation and header
