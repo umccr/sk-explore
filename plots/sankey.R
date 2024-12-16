@@ -59,25 +59,6 @@ htmlwidgets::saveWidget(sankey_plot, file = "/Users/kanwals/UMCCR/research/proje
 
 # Plot diagnostic dilemma categories
 # Define the data as text and read csv
-csv_data <- "
-source,    target,    value,  group
-One_1,     One_2,     8,    mono
-One_1,     One_2,     3,    pleo
-One_1,     One_2,     7,    rcc
-One_1,     One_2,     2,    swi
-Two_1,     One_2,     4,    mono
-Two_1,     Two_2,     1,    mono
-Two_1,     One_2,     4,    pleo
-Two_1,     One_2,     4,    swi
-Two_1,     Two_2,     1,    pleo
-Three_1,     One_2,   1,    mono
-Three_1,     One_2,   4,    pleo
-Three_1,     Two_2,   1,  pleo
-Four_1,   One_2,   1,   mono
-Four_1,   One_2,   2,   pleo
-Four_1,   Three_2,   1,   pleo
-Five_1,   One_2,    2,    mono
-"
 csv_data_update <- "
 source,    target,    value,  group
 One_1,     One_2,     8,    mono
@@ -97,6 +78,26 @@ Four_1,   Four_2, 1,  pleo
 One_1,     One_2,     5,    rcc
 One_1,     One_2,     2,    swi
 Two_1,     One_2,     2,    swi
+"
+
+csv_data_update2 <- "
+source,    target,    value,  group
+Five_1,   One_2,    2,    mono
+Four_1,   Four_2, 1,  pleo
+Four_1,   Three_2,   1,   pleo
+Four_1,   One_2,   2,   mono
+Four_1,   One_2,   1,   pleo
+Three_1,     One_2,   1,    mono
+Three_1,     One_2,   5,    pleo
+Two_1,     One_2,     4,    mono
+Two_1,     Two_2,     1,    mono
+Two_1,     One_2,     4,    pleo
+Two_1,     Two_2,     1,    pleo
+Two_1,     One_2,     2,    swi
+One_1,     One_2,     8,    mono
+One_1,     One_2,     3,    pleo
+One_1,     One_2,     7,    rcc
+One_1,     One_2,     2,    swi
 "
 
 # Malignant potential data
@@ -122,22 +123,28 @@ MakeSankey <- function(input_csv) {
 
   # Create labels by removing the suffix
   label <- sub("_[0-9]", "", id)
+  #label <- c("Five", "Four", "Three", "Two", "One", "Four", "Three", "Two", "One")
 
   # Create nodes data frame
   nodes <- data.frame(id = id, label = label)
 
-  # Add a 'group' column to each node. Here I decided to put all of them in the same group to make them grey
+  # Add a 'group' column to each node. And define grey color scale
   # reference https://r-graph-gallery.com/322-custom-colours-in-sankey-diagram.html
-  nodes$group <- as.factor(c("my_unique_group"))
+  #nodes$group <- as.factor(c("my_unique_group"))
+  nodes$group <- factor(nodes$label, levels = c("Five", "Four", "Three", "Two", "One"))
 
   # Update links data frame to add id source and target columns
   links$IDsource <- match(links$source, nodes$id) - 1
   links$IDtarget <- match(links$target, nodes$id) - 1
 
   # Define color scale for groups
+  # color_scale <- 'd3.scaleOrdinal()
+  #               .domain(["mono", "pleo", "rcc", "swi", "my_unique_group"])
+  #               .range(["#0072b2", "#cc79a7", "#d55e00", "#e69f00", "grey"])'
+
   color_scale <- 'd3.scaleOrdinal()
-                .domain(["mono", "pleo", "rcc", "swi", "my_unique_group"])
-                .range(["#69b3a2", "#b3697a", "#b37d69", "#a269b3", "grey"])'
+                .domain(["mono", "pleo", "rcc", "swi", "Five", "Four", "Three", "Two", "One"])
+                .range(["#0072b2", "#000584", "#E52918", "#FFB400", "#333333", "#5c5c5c", "#858585", "#adadad", "#d9d9d9"])'
 
   # Create Sankey network diagram
   p <- sankeyNetwork(
@@ -147,27 +154,39 @@ MakeSankey <- function(input_csv) {
     Target = "IDtarget",
     Value = "value",
     NodeID = "label",
-    fontSize = 16,
+    fontSize = 0,
     colourScale = color_scale,
     LinkGroup = "group",
-    NodeGroup = "group"
+    NodeGroup = "group",
+    iterations = 0
   )
 
-  # Add a color legend
-  JS <-
-    '
-    function(el, x, data){
-      var svg = d3.select("svg")
-      // Handmade legend
-      svg.append("circle").attr("cx",25).attr("cy",10).attr("r", 6).style("fill", "#5485AB")
-      svg.append("circle").attr("cx",25).attr("cy",30).attr("r", 6).style("fill", "#BA4682")
-      svg.append("text").attr("x", 35).attr("y", 10).text("variable M").style("font-size", "15px").attr("alignment-baseline","middle")
-      svg.append("text").attr("x", 35).attr("y", 30).text("variable W").style("font-size", "15px").attr("alignment-baseline","middle")
-    }
-    '
-  p <- htmlwidgets::onRender(p,JS)
+  # JS <-
+  #   '
+  #   function(el, x, data){
+  #   var svg = d3.select("svg")
+  #   // Get the width and height of the SVG container
+  #   var svgWidth = svg.node().getBoundingClientRect().width;
+  #   var svgHeight = svg.node().getBoundingClientRect().height;
+  #
+  #   // Calculate the x and y coordinates for the legend position
+  #   var legendX = svgWidth - 10; // Adjust this value to position the legend horizontally
+  #   var legendY = svgHeight / 2; // Adjust this value to position the legend vertically
+  #
+  #   // Handmade legend
+  #   svg.append("circle").attr("cx", legendX).attr("cy", legendY - 20).attr("r", 6).style("fill", "#5485AB")
+  #   svg.append("circle").attr("cx", legendX).attr("cy", legendY).attr("r", 6).style("fill", "#BA4682")
+  #   svg.append("text").attr("x", legendX + 10).attr("y", legendY - 20).text("variable M").style("font-size", "15px").attr("alignment-baseline","middle")
+  #   svg.append("text").attr("x", legendX + 10).attr("y", legendY).text("variable W").style("font-size", "15px").attr("alignment-baseline","middle")
+  #   }
+  #   '
+  # p <- htmlwidgets::onRender(p,JS)
+
   return(p)
 }
 
-malignant_sankey <- MakeSankey(csv_malignant)
 
+# Plot malignant potential
+malignant_lineages <- MakeSankey(csv_data_update2)
+htmlwidgets::saveWidget(malignant_lineages, "/Users/kanwals/UMCCR/research/projects/column-pi/sankey_plot-test.html")
+webshot2::webshot(url = "/Users/kanwals/UMCCR/research/projects/column-pi/sankey_plot-test.html", file = "/Users/kanwals/UMCCR/research/projects/column-pi/sankey_plot-test.jpg")
