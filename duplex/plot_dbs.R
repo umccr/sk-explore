@@ -116,7 +116,8 @@ get_sample_order <- function(sg) {
   )
 }
 
-# Main execution
+# Main execution - assumes signature analysis has been performed prior to running this to have sample name, snv_count,
+# indel_count, dnv_count values
 main <- function() {
   excel_file <- "mutation_counts_summary.xlsx"
 
